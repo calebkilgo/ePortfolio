@@ -1,0 +1,330 @@
+import { useState, useEffect } from 'react';
+
+interface UserLine {
+  segments: { text: string; color: string }[];
+  indent: number;
+}
+
+const CodeWindow = () => {
+  const [currentIndex, setCurrentIndex] = useState(0);
+  const [showCursor, setShowCursor] = useState(true);
+  const [userLines, setUserLines] = useState<UserLine[]>([]);
+  const [currentLine, setCurrentLine] = useState("");
+  const [currentIndent, setCurrentIndent] = useState(2);
+  const [wrappedLines, setWrappedLines] = useState<number>(0); // Start with 2 levels of indentation
+  const [isInteractive, setIsInteractive] = useState(true);
+
+    const codeLines = [
+    // Class definition
+    [
+      { text: 'class ', color: 'text-purple-400' },
+      { text: 'Student', color: 'text-yellow-300' },
+      { text: ':', color: 'text-white' }
+    ],
+    // Constructor
+    [
+      { text: '  def ', color: 'text-purple-400' },
+      { text: '__init__', color: 'text-blue-400' },
+      { text: '(', color: 'text-white' },
+      { text: 'self', color: 'text-orange-400' },
+      { text: '):', color: 'text-white' }
+    ],
+    // Properties
+    [
+      { text: '    ', color: 'text-white' },
+      { text: 'self', color: 'text-orange-400' },
+      { text: '.', color: 'text-white' },
+      { text: 'name', color: 'text-blue-300' },
+      { text: ' = ', color: 'text-white' },
+      { text: '"Caleb Kilgo"', color: 'text-green-400' }
+    ],
+    [
+      { text: '    ', color: 'text-white' },
+      { text: 'self', color: 'text-orange-400' },
+      { text: '.', color: 'text-white' },
+      { text: 'university', color: 'text-blue-300' },
+      { text: ' = ', color: 'text-white' },
+      { text: '"UAH"', color: 'text-green-400' }
+    ],
+    [
+      { text: '    ', color: 'text-white' },
+      { text: 'self', color: 'text-orange-400' },
+      { text: '.', color: 'text-white' },
+      { text: 'major', color: 'text-blue-300' },
+      { text: ' = ', color: 'text-white' },
+      { text: '"Computer Science"', color: 'text-green-400' }
+    ],
+    [
+      { text: '    ', color: 'text-white' },
+      { text: 'self', color: 'text-orange-400' },
+      { text: '.', color: 'text-white' },
+      { text: 'focus', color: 'text-blue-300' },
+      { text: ' = ', color: 'text-white' },
+      { text: '"Data Science"', color: 'text-green-400' }
+    ]
+  ];
+
+  // Enhanced syntax highlighting function
+  const highlightCode = (text: string) => {
+    let segments: { text: string; color: string }[] = [{ text, color: 'text-white' }];
+    
+    const syntaxRules = [
+      // Keywords (purple)
+      {
+        pattern: /\b(def|class|self|return|if|else|for|while|in|import|from|as|try|except|raise|with)\b/g,
+        color: 'text-purple-400'
+      },
+      // Built-in functions (blue)
+      {
+        pattern: /\b(print|len|range|str|int|float|list|dict|set|bool|type)\b/g,
+        color: 'text-blue-400'
+      },
+      // Strings (green)
+      {
+        pattern: /(["'])((?:\\.|[^\\])*?)\1/g,
+        color: 'text-green-400'
+      },
+      // Numbers (yellow)
+      {
+        pattern: /\b\d+\.?\d*\b/g,
+        color: 'text-yellow-300'
+      },
+      // Method calls (blue)
+      {
+        pattern: /\b\w+(?=\()/g,
+        color: 'text-blue-300'
+      },
+      // Properties (blue)
+      {
+        pattern: /(?<=\.)\w+\b/g,
+        color: 'text-blue-300'
+      }
+    ];
+
+    syntaxRules.forEach(rule => {
+      segments = segments.flatMap(segment => {
+        if (segment.color !== 'text-white') return [segment];
+        const parts = segment.text.split(rule.pattern);
+        const result: { text: string; color: string }[] = [];
+        
+        parts.forEach((part, i) => {
+          if (i % 3 === 0 || (rule.pattern.toString().includes('\\1') && i % 2 === 0)) {
+            if (part) result.push({ text: part, color: 'text-white' });
+          } else {
+            if (part) result.push({ text: part, color: rule.color });
+          }
+        });
+        
+        return result;
+      });
+    });
+
+    return segments.filter(s => s.text);
+  };
+
+  const handleKeyDown = (e: KeyboardEvent) => {
+    if (!isInteractive) return;
+
+    e.preventDefault();
+
+    if (e.key === 'Tab') {
+      setCurrentIndent(prev => prev + 2);
+    } else if (e.key === 'Enter') {
+      if (currentLine.trim()) {
+        const maxLineLength = 40; // Adjust based on your code window width
+        const lines = [];
+        let remainingText = currentLine;
+        
+        while (remainingText.length > 0) {
+          lines.push(remainingText.slice(0, maxLineLength));
+          remainingText = remainingText.slice(maxLineLength);
+        }
+        
+        lines.forEach(line => {
+          setUserLines(prev => [...prev, {
+            segments: highlightCode(line),
+            indent: currentIndent
+          }]);
+        });
+      }
+      setCurrentLine("");
+    } else if (e.key === 'Backspace') {
+      if (currentLine === "" && currentIndent > 2) {
+        setCurrentIndent(prev => prev - 2);
+      } else {
+        setCurrentLine(prev => prev.slice(0, -1));
+      }
+    } else if (e.key.length === 1) {
+      setCurrentLine(prev => prev + e.key);
+    }
+  };
+
+  useEffect(() => {
+    if (isInteractive) {
+      window.addEventListener('keydown', handleKeyDown);
+      return () => window.removeEventListener('keydown', handleKeyDown);
+    }
+  }, [isInteractive, currentLine, currentIndent]);
+
+  // Calculate wrapped lines
+  useEffect(() => {
+    const calculateWrappedLines = () => {
+      const maxCharsPerLine = 40; // Adjust this based on your code window width
+      const totalWrappedLines = userLines.reduce((acc, line) => {
+        const lineLength = line.segments.reduce((len, seg) => len + seg.text.length, 0);
+        return acc + Math.ceil(lineLength / maxCharsPerLine);
+      }, 0);
+      const currentWrapped = Math.ceil(currentLine.length / maxCharsPerLine);
+      setWrappedLines(totalWrappedLines + currentWrapped);
+    };
+
+    calculateWrappedLines();
+  }, [currentLine, userLines]);
+
+  useEffect(() => {
+    const cursorInterval = setInterval(() => {
+      setShowCursor(prev => !prev);
+    }, 530);
+
+    return () => clearInterval(cursorInterval);
+  }, []);
+
+  useEffect(() => {
+    const timer = setInterval(() => {
+      if (currentIndex < codeLines.length) {
+        setCurrentIndex(prev => prev + 1);
+      }
+    }, 150);
+
+    return () => clearInterval(timer);
+  }, [currentIndex, codeLines.length]);
+
+  return (
+    <div className="relative bg-gray-900/80 backdrop-blur-md border border-gray-600/50 rounded-lg overflow-hidden shadow-2xl max-w-lg w-full">
+      {/* Windows 11 Header */}
+      <div className="bg-gray-800/90 border-b border-gray-600/30 px-4 py-2 flex items-center justify-between">
+        <div className="w-16"></div>
+        <span className="text-white/80 text-sm font-mono">student.py - Visual Studio Code</span>
+        <div className="flex items-center space-x-1">
+          {/* Windows 11 control buttons with hover effects */}
+          <button className="w-3 h-3 hover:bg-gray-600 rounded-sm flex items-center justify-center transition-colors duration-200 group">
+            <div className="w-2 h-0.5 bg-white/70 group-hover:bg-white transition-colors duration-200"></div>
+          </button>
+          <button className="w-3 h-3 hover:bg-gray-600 rounded-sm flex items-center justify-center transition-colors duration-200 group">
+            <div className="w-1.5 h-1.5 border border-white/70 group-hover:border-white rounded-sm transition-colors duration-200"></div>
+          </button>
+          <button className="w-3 h-3 hover:bg-red-600 rounded-sm flex items-center justify-center transition-colors duration-200 group">
+            <div className="w-2 h-0.5 bg-white/70 group-hover:bg-white rotate-45 absolute transition-colors duration-200"></div>
+            <div className="w-2 h-0.5 bg-white/70 group-hover:bg-white -rotate-45 absolute transition-colors duration-200"></div>
+          </button>
+        </div>
+      </div>
+      
+      {/* Code Content */}
+      <div className="p-4 font-mono text-sm bg-gray-900/60 min-h-[200px] max-h-[600px] overflow-y-auto">
+        <div className="flex">
+          {/* Line numbers */}
+          <div className="flex-none w-12 text-gray-500 text-right pr-4 select-none leading-6">
+            {Array.from({ length: Math.max(7, codeLines.length + userLines.length + 1) }, (_, i) => (
+              <div key={i + 1} className="h-6">{i + 1}</div>
+            ))}
+          </div>
+        {/* Main code content */}
+        <div className="flex-1 overflow-auto">
+          
+          {/* Code content */}
+          <div className="flex-1">
+            <pre className="m-0 p-0">
+              <code className="block text-left">
+                <div className="flex flex-col">
+                  {codeLines.map((line, lineIndex) => (
+                    <div 
+                      key={lineIndex} 
+                      className="h-6 flex items-center whitespace-pre relative"
+                    >
+                      <div className="flex">
+                        {lineIndex < currentIndex && line.map((segment, segmentIndex) => (
+                          <span 
+                            key={`${lineIndex}-${segmentIndex}`} 
+                            className={segment.color}
+                          >
+                            {segment.text}
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                  ))}
+                  {/* User input lines */}
+                  {userLines.map((line, lineIndex) => (
+                    <div
+                      key={`user-${lineIndex}`}
+                      className="min-h-6 whitespace-pre-wrap break-words relative pl-0 w-full"
+                      style={{ marginLeft: "0", maxWidth: "calc(100% - 1rem)" }}
+                    >
+                      {line.segments.map((segment, segmentIndex) => (
+                        <span
+                          key={`user-${lineIndex}-${segmentIndex}`}
+                          className={`${segment.color}`}
+                        >
+                          {segment.text}
+                        </span>
+                      ))}
+                    </div>
+                  ))}
+                  {/* Current input line */}
+                  {isInteractive && (
+                    <div 
+                      className="min-h-6 whitespace-pre-wrap relative pl-0"
+                      style={{ width: "calc(100% - 1rem)" }}
+                    >
+                      {highlightCode(currentLine).map((segment, index) => (
+                        <span
+                          key={`current-${index}`}
+                          className={`${segment.color}`}
+                        >
+                          {segment.text}
+                        </span>
+                      ))}
+                      {showCursor && (
+                        <span className="animate-pulse bg-white/50 w-[2px] h-5 inline-block absolute" 
+                              style={{ 
+                                left: `${currentLine.length}ch`,
+                                top: "0"
+                              }}></span>
+                      )}
+                    </div>
+                  )}
+                  {/* Empty line placeholder for line 7 */}
+                  {currentIndex >= codeLines.length && userLines.length === 0 && !currentLine && (
+                                        </div>
+                  )}
+                  {/* Empty line placeholder for line 7 */}
+                  {currentIndex >= codeLines.length && userLines.length === 0 && !currentLine && (
+                    <div className="h-6"></div>
+                  )}
+                </div>
+              </code>
+            </pre>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+                    {/* Empty line placeholder for line 7 */}
+                    {currentIndex >= codeLines.length && userLines.length === 0 && !currentLine && (
+                      <div className="h-6"></div>
+                    )}
+                  </div>
+                </code>
+              </pre>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export default CodeWindow;

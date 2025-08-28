@@ -1,0 +1,155 @@
+import { useRef, useEffect } from 'react';
+
+interface Star {
+  x: number;
+  y: number;
+  z: number;
+  prevX?: number;
+  prevY?: number;
+  prevZ?: number;
+}
+
+const StarField = () => {
+  const canvasRef = useRef<HTMLCanvasElement | null>(null);
+  const animationRef = useRef<number | null>(null);
+  const mouseRef = useRef<{ x: number; y: number; speed: number }>({
+    x: 0,
+    y: 0,
+    speed: 0
+  });
+  const stars = useRef<Star[]>([]);
+
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+    
+    const resizeCanvas = () => {
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+      createStars();  // Recreate stars when canvas is resized
+    };
+
+    const createStars = () => {
+      stars.current = [];
+      // Clear any existing stars first
+      while (stars.current.length > 0) {
+        stars.current.pop();
+      }
+      for (let i = 0; i < 25; i++) {  // Even more drastically reduced to just 25 stars
+        stars.current.push({
+          x: Math.random() * canvas.width - canvas.width/2,
+          y: Math.random() * canvas.height - canvas.height/2,
+          z: Math.random() * 1500
+        });
+      }
+    };
+
+    const handleMouseMove = (e: MouseEvent) => {
+      const rect = canvas.getBoundingClientRect();
+      const x = e.clientX - rect.left;
+      const y = e.clientY - rect.top;
+      
+      const centerX = canvas.width / 2;
+      const centerY = canvas.height / 2;
+      
+      const dx = (x - centerX) / centerX;
+      const dy = (y - centerY) / centerY;
+      
+      const distance = Math.sqrt(dx * dx + dy * dy);
+      mouseRef.current.speed = Math.min(distance * 8, 8);  // Reduced speed multiplier and max speed
+      mouseRef.current.x = dx * 0.5;  // Reduced mouse movement effect
+      mouseRef.current.y = dy * 0.5;  // Reduced mouse movement effect
+    };
+
+    const animate = () => {
+      ctx.fillStyle = 'rgba(0, 0, 0, 0.2)';
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+      const centerX = canvas.width / 2;
+      const centerY = canvas.height / 2;
+
+      stars.current.forEach(star => {
+        // Save previous position
+        star.prevX = star.x;
+        star.prevY = star.y;
+        star.prevZ = star.z;
+
+        // Update z position with smoother base speed
+        star.z -= mouseRef.current.speed + 1.5;  // Reduced base speed from 3 to 1.5
+
+        if (star.z < 1) {
+          star.z = 1500;
+          star.x = Math.random() * canvas.width - centerX;
+          star.y = Math.random() * canvas.height - centerY;
+          star.prevZ = star.z;
+          star.prevX = star.x;
+          star.prevY = star.y;
+          return;
+        }
+
+        // Calculate current and trail positions
+        const projectedX = (star.x + mouseRef.current.x * star.z * 0.1) / (star.z * 0.001);
+        const projectedY = (star.y + mouseRef.current.y * star.z * 0.1) / (star.z * 0.001);
+
+        if (projectedX < -centerX || projectedX > centerX || projectedY < -centerY || projectedY > centerY) {
+          star.z = 1500;
+          star.x = Math.random() * canvas.width - centerX;
+          star.y = Math.random() * canvas.height - centerY;
+          star.prevZ = star.z;
+          star.prevX = star.x;
+          star.prevY = star.y;
+          return;
+        }
+
+        // Draw trail
+        const size = Math.min(1500 / star.z, 3);  // Increased max size
+        const opacity = Math.min(1500 / star.z, 0.8);  // Slightly reduced max opacity
+
+        ctx.beginPath();
+        ctx.strokeStyle = `rgba(255, 255, 255, ${opacity})`;
+        ctx.lineWidth = size;
+        ctx.moveTo(projectedX + centerX, projectedY + centerY);
+        const prevProjectedX = star.prevX ? (star.prevX + mouseRef.current.x * (star.prevZ || star.z) * 0.1) / ((star.prevZ || star.z) * 0.001) : projectedX;
+        const prevProjectedY = star.prevY ? (star.prevY + mouseRef.current.y * (star.prevZ || star.z) * 0.1) / ((star.prevZ || star.z) * 0.001) : projectedY;
+        ctx.lineTo(prevProjectedX + centerX, prevProjectedY + centerY);
+        ctx.stroke();
+
+        // Draw star
+        ctx.beginPath();
+        ctx.fillStyle = `rgba(255, 255, 255, ${opacity})`;
+        ctx.arc(projectedX + centerX, projectedY + centerY, size, 0, Math.PI * 2);
+        ctx.fill();
+      });
+
+      animationRef.current = requestAnimationFrame(animate);
+    };
+
+    resizeCanvas();
+    createStars();
+    animate();
+
+    window.addEventListener('resize', resizeCanvas);
+    window.addEventListener('mousemove', handleMouseMove);
+
+    return () => {
+      if (animationRef.current !== null) {
+        cancelAnimationFrame(animationRef.current);
+      }
+      window.removeEventListener('resize', resizeCanvas);
+      window.removeEventListener('mousemove', handleMouseMove);
+    };
+  }, []);
+
+  return (
+    <canvas
+      ref={canvasRef}
+      className="fixed inset-0 z-0"
+      style={{ background: 'radial-gradient(ellipse at center, #0f0f23 0%, #000 100%)' }}
+    />
+  );
+};
+
+export default StarField;
