@@ -1,5 +1,4 @@
-import { useState, useEffect, useRef, useCallback } from "react";
-import * as THREE from "three";
+import { useState, useEffect, useRef, useCallback, lazy, Suspense } from "react";
 import Lenis from "lenis";
 import {
   motion,
@@ -87,6 +86,11 @@ section{scroll-margin-top:72px}
   font-size:clamp(76px,16vw,200px);line-height:.98;letter-spacing:.005em;color:${D.white}}
 .hero-sub{max-width:520px;margin-top:30px;font-size:clamp(15px,1.4vw,17px);line-height:1.75;color:${D.text}}
 .hero-sub b{color:${D.white};font-weight:500}
+.chip{display:inline-block;font-family:${MONO};font-size:.78em;letter-spacing:1.2px;
+  text-transform:uppercase;color:${D.white};border:1px solid ${D.white};
+  padding:3px 10px 4px;margin:0 2px;transform:translateY(-1px);white-space:nowrap;
+  transition:background .2s,color .2s}
+.chip:hover{background:${D.white};color:${D.bg}}
 .hero-cta{display:flex;gap:14px;flex-wrap:wrap;margin-top:38px}
 .globe-box{position:relative;height:clamp(300px,42vh,420px);touch-action:pan-y;cursor:grab}
 .globe-box:active{cursor:grabbing}
@@ -100,6 +104,14 @@ section{scroll-margin-top:72px}
   animation:cue 1.8s cubic-bezier(.16,1,.3,1) infinite}
 @keyframes cue{to{top:100%}}
 .scroll-cue span{font-family:${MONO};font-size:9px;letter-spacing:3px;color:${D.dim}}
+
+/* ── click flybys ── */
+.jets{position:fixed;inset:0;z-index:-1;pointer-events:none;overflow:hidden}
+.jet{position:absolute;top:0;left:0;will-change:transform}
+.jet-in{display:flex;align-items:center;gap:14px;transform-origin:center}
+.jet svg{display:block;opacity:.6;flex-shrink:0}
+.jet .trail{height:1px;width:130px;opacity:.45;flex-shrink:0;
+  background:linear-gradient(90deg,transparent,${D.white}66)}
 
 /* ── buttons ── */
 .btn{display:inline-flex;align-items:center;gap:10px;font-family:${MONO};font-size:11.5px;
@@ -241,9 +253,28 @@ section{scroll-margin-top:72px}
 @media(max-width:767px){
   .brand .short{display:inline}
   .hnav{gap:4px}
-  .hnav a{font-size:9.5px;letter-spacing:1.5px;padding:8px 6px}
+  .hnav a{font-size:9.5px;letter-spacing:1.5px;padding:14px 6px}
   .hnav a::after{left:6px}
   .hnav a:hover::after{right:6px}
+  .sec{padding:72px 0}
+  .hero{min-height:auto;padding:104px 0 56px}
+  .hero h1{font-size:clamp(58px,17vw,200px)}
+  .hero-sub{margin-top:22px}
+  .hero-cta{margin-top:28px}
+  .hero-cta .btn{flex:1 1 auto;justify-content:center}
+  .globe-box{height:280px}
+  .scroll-cue{display:none}
+  .stats{margin:40px 0}
+  .stat{padding:22px 16px}
+  .feat-grid{gap:44px}
+  .proj-head{grid-template-columns:36px 1fr auto;gap:12px;padding:22px 0}
+  .proj-head:hover{padding-left:0}
+  .proj-head .n{font-size:20px}
+  .proj-head .pm{width:34px;height:34px}
+  .xp{padding:26px 0}
+  .xp:hover{padding-left:0}
+  .contact-links .btn{flex:1 1 100%;justify-content:center}
+  .ftr-in{justify-content:center;text-align:center}
 }
 
 /* ── reduced motion ── */
@@ -275,140 +306,74 @@ function useLenis() {
   }, []);
 }
 
-/* ═══ Wireframe globe with orbiting satellites ══════════════════ */
-function Globe() {
-  const boxRef = useRef(null);
+/* ═══ Globe — code-split so three.js loads after first paint ════ */
+const Globe = lazy(() => import("./Globe"));
+
+/* ═══ Click flybys — stealth wing crosses the screen ════════════ */
+function JetFlybys() {
+  const [jets, setJets] = useState([]);
   useEffect(() => {
-    const box = boxRef.current;
-    if (!box) return;
-    const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-
-    const scene = new THREE.Scene();
-    const camera = new THREE.PerspectiveCamera(38, 1, 0.1, 50);
-    camera.position.z = 4.6;
-    const renderer = new THREE.WebGLRenderer({ alpha: true, antialias: true });
-    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
-    renderer.setClearColor(0x000000, 0);
-    box.appendChild(renderer.domElement);
-
-    const root = new THREE.Group();
-    root.rotation.x = 0.32;
-    scene.add(root);
-
-    const disposables = [];
-    const lineMat = (opacity) => {
-      const m = new THREE.LineBasicMaterial({ color: 0xffffff, transparent: true, opacity });
-      disposables.push(m);
-      return m;
-    };
-    const circleGeo = (radius, segments = 96) => {
-      const pts = [];
-      for (let i = 0; i <= segments; i++) {
-        const a = (i / segments) * Math.PI * 2;
-        pts.push(new THREE.Vector3(Math.cos(a) * radius, 0, Math.sin(a) * radius));
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+    const onClick = (e) => {
+      if (e.target.closest("a,button,input,textarea,select,.globe-box,.sec-w,header")) return;
+      const vw = window.innerWidth, vh = window.innerHeight, m = 240;
+      const th = Math.random() * Math.PI * 2;
+      const dx = Math.cos(th), dy = Math.sin(th);
+      const px = e.clientX, py = e.clientY;
+      // clip the flight line (through the click point, heading th) to the
+      // expanded viewport so the jet starts and ends fully off-screen
+      let t0 = -Infinity, t1 = Infinity;
+      for (const [p, d, min, max] of [[px, dx, -m, vw + m], [py, dy, -m, vh + m]]) {
+        if (Math.abs(d) < 1e-6) continue;
+        let a = (min - p) / d, b = (max - p) / d;
+        if (a > b) [a, b] = [b, a];
+        t0 = Math.max(t0, a); t1 = Math.min(t1, b);
       }
-      const g = new THREE.BufferGeometry().setFromPoints(pts);
-      disposables.push(g);
-      return g;
+      if (!isFinite(t0) || !isFinite(t1) || t1 <= t0) return;
+      const speed = 550 + Math.random() * 350;
+      setJets((js) => [
+        ...js.slice(-3),
+        {
+          id: Date.now() + Math.random(),
+          sx: px + dx * t0, sy: py + dy * t0,
+          ex: px + dx * t1, ey: py + dy * t1,
+          rot: (th * 180) / Math.PI,
+          dur: (t1 - t0) / speed,
+          scale: 0.55 + Math.random() * 0.5,
+        },
+      ]);
     };
-
-    // graticule: latitude rings
-    for (let lat = -60; lat <= 60; lat += 30) {
-      const rad = (lat * Math.PI) / 180;
-      const ring = new THREE.Line(
-        circleGeo(Math.cos(rad)),
-        lineMat(lat === 0 ? 0.22 : 0.09)
-      );
-      ring.position.y = Math.sin(rad);
-      root.add(ring);
-    }
-    // longitude rings
-    for (let lon = 0; lon < 180; lon += 30) {
-      const ring = new THREE.Line(circleGeo(1), lineMat(0.09));
-      ring.rotation.z = Math.PI / 2;
-      ring.rotation.y = (lon * Math.PI) / 180;
-      root.add(ring);
-    }
-
-    // orbits + satellites
-    const satGeo = new THREE.SphereGeometry(0.022, 12, 12);
-    const satMat = new THREE.MeshBasicMaterial({ color: 0xffffff });
-    disposables.push(satGeo, satMat);
-    const sats = [];
-    const ORBITS = [
-      { r: 1.28, inc: 51.6, raan: 0, speed: 0.50, phase: 0.0 },
-      { r: 1.48, inc: 97.0, raan: 1.1, speed: 0.36, phase: 2.1 },
-      { r: 1.70, inc: 22.0, raan: 2.3, speed: 0.26, phase: 4.2 },
-    ];
-    ORBITS.forEach((o) => {
-      const g = new THREE.Group();
-      g.rotation.order = "YXZ";
-      g.rotation.y = o.raan;
-      g.rotation.x = (o.inc * Math.PI) / 180;
-      g.add(new THREE.Line(circleGeo(o.r, 128), lineMat(0.2)));
-      const sat = new THREE.Mesh(satGeo, satMat);
-      g.add(sat);
-      root.add(g);
-      sats.push({ sat, ...o, angle: o.phase });
-    });
-
-    // sizing — camera distance adapts so the outer orbit (r=1.70) never clips
-    const setSize = () => {
-      const w = box.clientWidth, h = box.clientHeight;
-      camera.aspect = w / h;
-      const halfFov = (camera.fov / 2) * (Math.PI / 180);
-      camera.position.z = 1.95 / (Math.tan(halfFov) * Math.min(camera.aspect, 1));
-      camera.updateProjectionMatrix();
-      renderer.setSize(w, h);
-    };
-    setSize();
-    const ro = new ResizeObserver(setSize);
-    ro.observe(box);
-
-    // drag to rotate
-    let dragging = false, lastX = 0, lastY = 0;
-    const onDown = (e) => { dragging = true; lastX = e.clientX; lastY = e.clientY; };
-    const onMove = (e) => {
-      if (!dragging) return;
-      root.rotation.y += (e.clientX - lastX) * 0.005;
-      root.rotation.x = Math.max(-0.9, Math.min(0.9, root.rotation.x + (e.clientY - lastY) * 0.003));
-      lastX = e.clientX; lastY = e.clientY;
-    };
-    const onUp = () => { dragging = false; };
-    box.addEventListener("pointerdown", onDown);
-    window.addEventListener("pointermove", onMove);
-    window.addEventListener("pointerup", onUp);
-
-    // animate
-    let raf, prev = performance.now();
-    const tick = (now) => {
-      raf = requestAnimationFrame(tick);
-      const dt = Math.min((now - prev) / 1000, 0.05);
-      prev = now;
-      if (!dragging && !reduced) root.rotation.y += dt * 0.07;
-      sats.forEach((s) => {
-        if (!reduced) s.angle += dt * s.speed;
-        s.sat.position.set(Math.cos(s.angle) * s.r, 0, Math.sin(s.angle) * s.r);
-      });
-      renderer.render(scene, camera);
-    };
-    raf = requestAnimationFrame(tick);
-
-    return () => {
-      cancelAnimationFrame(raf);
-      ro.disconnect();
-      box.removeEventListener("pointerdown", onDown);
-      window.removeEventListener("pointermove", onMove);
-      window.removeEventListener("pointerup", onUp);
-      disposables.forEach((d) => d.dispose());
-      renderer.dispose();
-      if (box.contains(renderer.domElement)) box.removeChild(renderer.domElement);
-    };
+    window.addEventListener("click", onClick);
+    return () => window.removeEventListener("click", onClick);
   }, []);
-
+  const remove = (id) => setJets((js) => js.filter((j) => j.id !== id));
   return (
-    <div className="globe-box" ref={boxRef} aria-hidden="true">
-      <span className="globe-hint">DRAG TO ROTATE</span>
+    <div className="jets" aria-hidden="true">
+      {jets.map((j) => (
+        <motion.div
+          key={j.id}
+          className="jet"
+          initial={{ x: j.sx, y: j.sy }}
+          animate={{ x: j.ex, y: j.ey }}
+          transition={{ duration: j.dur, ease: "linear" }}
+          onAnimationComplete={() => remove(j.id)}
+        >
+          <div
+            className="jet-in"
+            style={{ transform: `translate(-50%,-50%) rotate(${j.rot}deg) scale(${j.scale})` }}
+          >
+            <div className="trail" />
+            {/* B-2 planform, nose pointing +x: long swept leading edges,
+                short wingtip chords, double-sawtooth trailing edge */}
+            <svg width="60" height="130" viewBox="0 0 60 130">
+              <polygon
+                points="54,65 8,4 1,8 22,22 6,36 26,50 10,65 26,80 6,94 22,108 1,122 8,126"
+                fill={D.white}
+              />
+            </svg>
+          </div>
+        </motion.div>
+      ))}
     </div>
   );
 }
@@ -516,8 +481,12 @@ function Hero({ scrollTo }) {
               </motion.h1>
             </div>
             <motion.p className="hero-sub" variants={fadeUp}>
-              CS student at UAH building <b>orbital propagation in the browser</b>,
-              offline RAG systems, and NASA flight-software traceability tools.
+              Currently working on{" "}
+              <a className="chip" href="#featured"
+                onClick={(e) => { e.preventDefault(); scrollTo("#featured"); }}>
+                Satellite Tracker
+              </a>
+              , along with RAG systems and NASA flight-software traceability.
             </motion.p>
             <motion.div className="hero-cta" variants={fadeUp}>
               <a className="btn btn-solid" href="#featured" onClick={(e) => { e.preventDefault(); scrollTo("#featured"); }}>
@@ -534,7 +503,9 @@ function Hero({ scrollTo }) {
           animate={{ opacity: 1 }}
           transition={{ duration: 1.2, delay: 0.5 }}
         >
-          <Globe />
+          <Suspense fallback={<div className="globe-box" aria-hidden="true" />}>
+            <Globe />
+          </Suspense>
         </motion.div>
       </div>
       <div className="scroll-cue" aria-hidden="true">
@@ -674,7 +645,7 @@ const PROJECTS = [
       "An automated pipeline mapping engineering requirements to source functions across NASA's Core Flight System — exposing what's implemented, what's tested, and where the gaps are.",
     grid: [
       ["Problem", "Requirement-to-code verification in large flight software repos is manual, slow, and error-prone."],
-      ["Role", "Research assistant at UAH — extraction pipeline, custom C parser, datasets, visualizations."],
+      ["Role", "Research assistant at UAH — extraction pipeline, datasets, visualizations."],
       ["Constraint", "Thousands of C files with inconsistent naming between production and test code."],
       ["What I learned", "Custom parsers beat regex for brace-matched languages; chord diagrams surface heavily-reused functions fast."],
     ],
@@ -684,7 +655,7 @@ const PROJECTS = [
       ["Datasets", "Requirement-function pairs exported ML-ready for similarity and contrastive learning."],
       ["Visualization", "Chord and Sankey diagrams reveal reuse, multi-module requirements, and coverage gaps."],
     ],
-    stack: ["Python", "Pandas", "Custom C Parser", "Holoviews", "Bokeh", "Plotly"],
+    stack: ["Python", "Pandas", "Holoviews", "Bokeh", "Plotly"],
   },
 ];
 
@@ -766,7 +737,7 @@ function Experience() {
       when: "2024 — PRESENT",
       org: "University of Alabama in Huntsville",
       role: "Undergraduate Data Science Research Assistant",
-      desc: "Requirement-to-code traceability for NASA Core Flight System — custom C parser, ML-ready datasets, and interactive coverage visualizations.",
+      desc: "Requirement-to-code traceability for NASA Core Flight System, ML-ready datasets, and interactive coverage visualizations.",
       tags: "PYTHON · NASA CFS · ML PIPELINE",
     },
     {
@@ -890,6 +861,7 @@ export default function App() {
   return (
     <MotionConfig reducedMotion="user">
       <style>{CSS}</style>
+      <JetFlybys />
       <Header scrollTo={scrollTo} />
       <main>
         <Hero scrollTo={scrollTo} />
