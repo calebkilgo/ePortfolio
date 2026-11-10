@@ -146,15 +146,9 @@ section{scroll-margin-top:72px}
 .stat .v{font-family:${COND};font-weight:600;font-size:clamp(44px,5.5vw,72px);line-height:1;color:${L.text}}
 .stat .v small{font-size:.45em;font-weight:500;margin-left:2px}
 .stat .k{font-family:${MONO};font-size:10px;letter-spacing:1.8px;color:${L.dim};margin-top:10px;text-transform:uppercase}
-.feat-grid{display:grid;grid-template-columns:1fr;gap:56px}
 .fh{font-family:${MONO};font-size:11px;letter-spacing:2.5px;color:${L.dim};text-transform:uppercase;
   padding-bottom:12px;border-bottom:1px solid ${L.line};margin-bottom:6px}
-.how-row{display:grid;grid-template-columns:44px 1fr;gap:16px;padding:18px 0;border-bottom:1px solid ${L.line}}
-.how-row .n{font-family:${COND};font-size:26px;font-weight:600;color:#C6CACC;line-height:1}
-.how-row h4{font-size:14px;font-weight:600;color:${L.text};letter-spacing:.4px;text-transform:uppercase;margin-bottom:5px}
-.how-row p{font-size:13.5px;line-height:1.65;color:${L.body}}
-.ennote{padding:16px 0;border-bottom:1px solid ${L.line};font-size:13.5px;line-height:1.65;color:${L.body}}
-.ennote b{color:${L.text};font-weight:600}
+.specs-grid{display:grid;grid-template-columns:1fr;gap:0 48px}
 .specs .row{display:flex;justify-content:space-between;gap:14px;padding:13px 0;border-bottom:1px solid ${L.line}}
 .specs dt{font-family:${MONO};font-size:10px;letter-spacing:1.8px;color:${L.dim};flex-shrink:0;padding-top:2px}
 .specs dd{font-family:${MONO};font-size:11.5px;color:${L.text};text-align:right;line-height:1.6}
@@ -248,7 +242,8 @@ section{scroll-margin-top:72px}
   .wrap{padding:0 48px}
   .hero-grid{grid-template-columns:1.05fr .95fr;gap:40px}
   .globe-box{height:clamp(420px,72vh,660px)}
-  .feat-grid{grid-template-columns:1.4fr 1fr;gap:72px}
+  .specs-grid{grid-template-columns:1fr 1fr}
+  .specs-grid .row:nth-last-child(2):nth-child(odd){border-bottom:1px solid ${L.line}}
 }
 @media(max-width:767px){
   .brand .short{display:inline}
@@ -266,7 +261,6 @@ section{scroll-margin-top:72px}
   .scroll-cue{display:none}
   .stats{margin:40px 0}
   .stat{padding:22px 16px}
-  .feat-grid{gap:44px}
   .proj-head{grid-template-columns:36px 1fr auto;gap:12px;padding:22px 0}
   .proj-head:hover{padding-left:0}
   .proj-head .n{font-size:20px}
@@ -540,25 +534,14 @@ function Stat({ value, suffix, label }) {
 
 /* ═══ Featured project — Satellite Tracker (white section) ══════ */
 function Featured() {
-  const how = [
-    ["TLE data", "Live element sets from CelesTrak, fetched in-browser with a FastAPI fallback proxy."],
-    ["C++ → WASM", "Custom C++17 SGP4/SDP4 propagator (Vallado 2006), compiled with Emscripten."],
-    ["Batch propagation", "One WASM call per frame over pre-allocated buffers — zero per-satellite JS overhead."],
-    ["3D render", "CesiumJS globe via Resium: live telemetry, camera lock-on, ground tracks."],
-  ];
   const specs = [
     ["TYPE", "Real-time orbital tracker"],
     ["REGIMES", "LEO · MEO · GEO"],
     ["GROUPS", "GPS · Starlink · ISS · weather · science"],
-    ["PROPAGATOR", "SGP4/SDP4 — C++17 → WASM"],
+    ["PROPAGATOR", "SGP4/SDP4 (C++17 → WASM)"],
     ["FRONTEND", "React 19 · Vite 8 · Cesium / Resium"],
     ["BACKEND", "Python 3.11 · FastAPI"],
     ["DEPLOY", "Vercel + Render"],
-  ];
-  const notes = [
-    [<b key="1">Stutter-free tracking.</b>, " Camera lock-on via a preRender listener instead of Cesium's jittery trackedEntity."],
-    [<b key="2">Cheap frames.</b>, " Coefficients pre-computed once per TLE — per-frame work is arithmetic plus one Newton–Raphson solve."],
-    [<b key="3">Correct at the dateline.</b>, " Ground tracks split at the antimeridian; no streaks across the map."],
   ];
   return (
     <section className="sec sec-w" id="featured" aria-label="Featured project: Satellite Tracker">
@@ -567,8 +550,8 @@ function Featured() {
         <TitleReveal>Satellite Tracker</TitleReveal>
         <FadeIn>
           <p className="feat-intro">
-            Live positions for GPS, Starlink, weather, and science satellites on a 3D globe —
-            propagated by a custom C++ SGP4/SDP4 engine compiled to WebAssembly, running every
+            Live positions for GPS, Starlink, weather, and science satellites on a 3D globe,
+            propagated by a custom C++ SGP4/SDP4 engine compiled to WebAssembly and running every
             frame in the browser. Click a satellite for live telemetry, lock the camera on,
             and trace its ground track across two full orbits.
           </p>
@@ -581,35 +564,20 @@ function Featured() {
           <Stat value={2} suffix="×" label="Orbital periods per track" />
         </div>
 
-        <div className="feat-grid">
-          <FadeIn>
-            <div className="fh">How it works</div>
-            {how.map(([t, d], i) => (
-              <div className="how-row" key={t}>
-                <span className="n">{String(i + 1).padStart(2, "0")}</span>
-                <div><h4>{t}</h4><p>{d}</p></div>
-              </div>
+        <FadeIn>
+          <div className="fh">Specifications</div>
+          <dl className="specs specs-grid">
+            {specs.map(([k, v]) => (
+              <div className="row" key={k}><dt>{k}</dt><dd>{v}</dd></div>
             ))}
-            <div className="fh" style={{ marginTop: 48 }}>Engineering notes</div>
-            {notes.map((parts, i) => (
-              <p className="ennote" key={i}>{parts}</p>
-            ))}
-          </FadeIn>
-          <FadeIn delay={0.12}>
-            <div className="fh">Specifications</div>
-            <dl className="specs">
-              {specs.map(([k, v]) => (
-                <div className="row" key={k}><dt>{k}</dt><dd>{v}</dd></div>
-              ))}
-            </dl>
-            <div className="feat-cta">
-              <a className="btn btn-solid" href="https://satellite-tracker-gilt.vercel.app"
-                target="_blank" rel="noopener noreferrer">Live Demo ↗</a>
-              <a className="btn btn-line" href="https://github.com/calebkilgo/satellite-tracker"
-                target="_blank" rel="noopener noreferrer">GitHub ↗</a>
-            </div>
-          </FadeIn>
-        </div>
+          </dl>
+          <div className="feat-cta">
+            <a className="btn btn-solid" href="https://satellite-tracker-gilt.vercel.app"
+              target="_blank" rel="noopener noreferrer">Live Demo ↗</a>
+            <a className="btn btn-line" href="https://github.com/calebkilgo/satellite-tracker"
+              target="_blank" rel="noopener noreferrer">GitHub ↗</a>
+          </div>
+        </FadeIn>
       </div>
     </section>
   );
@@ -622,40 +590,50 @@ const PROJECTS = [
     title: "SMART Assistant",
     sub: "MULTIMODAL RAG · FULLY OFFLINE",
     overview:
-      "A multimodal RAG assistant that answers questions about automotive technical manuals — typed, spoken, or image input — running entirely offline on a local LLM.",
+      "A fully offline RAG assistant for automotive service manuals. It parses each manual into text, tables, and diagrams, then indexes all three so answers can be pulled from visual and tabular content rather than prose alone, with every query handled by a local model on-device.",
     grid: [
-      ["Problem", "Technicians need fast answers from huge manuals, but proprietary repair data can't go to cloud LLMs."],
-      ["Role", "Sole developer — architecture, full pipeline, and evaluation."],
+      ["Problem", "Existing manual search only retrieves from plain text, so information living in wiring diagrams, exploded views, and spec tables was effectively unreachable."],
+      ["Role", "Two-person team. Shared the architecture, pipeline, and evaluation work."],
       ["Constraint", "Zero cloud calls at query time. Everything runs locally."],
-      ["What I learned", "Page-prior image re-ranking beats raw CLIP similarity; naive chunking destroys table context."],
     ],
     steps: [
-      ["Ingestion", "PyMuPDF splits manuals into text, tables, and captioned images with page metadata."],
-      ["Dual indexing", "Text (nomic-embed-text) and images (CLIP) in separate FAISS indexes."],
-      ["Retrieval", "Text expands to nearby pages; images re-ranked with page-prior scoring."],
-      ["Generation", "Mistral 7B answers strictly from retrieved context; Whisper handles voice."],
+      ["Ingestion", "Manuals are split into text, tables, and captioned diagrams, each tagged with page metadata."],
+      ["Dual indexing", "Text and images are embedded into separate FAISS indexes so visuals stay searchable."],
+      ["Retrieval", "Text expands to nearby pages while images are re-ranked with page-prior scoring."],
+      ["Generation", "A local LLM answers strictly from retrieved context, with voice input via Whisper."],
     ],
-    stack: ["Python", "FAISS", "CLIP", "Ollama", "Mistral 7B", "Whisper", "PyMuPDF", "Streamlit"],
+    stack: ["Python", "FAISS", "CLIP", "Ollama", "Whisper", "PyMuPDF", "Streamlit"],
   },
   {
     id: "cfs",
     title: "NASA cFS Traceability",
     sub: "FLIGHT SOFTWARE VERIFICATION · UAH RESEARCH",
     overview:
-      "An automated pipeline mapping engineering requirements to source functions across NASA's Core Flight System — exposing what's implemented, what's tested, and where the gaps are.",
+      "An automated pipeline mapping engineering requirements to source functions across NASA's Core Flight System, exposing what's implemented, what's tested, and where the gaps are.",
     grid: [
       ["Problem", "Requirement-to-code verification in large flight software repos is manual, slow, and error-prone."],
-      ["Role", "Research assistant at UAH — extraction pipeline, datasets, visualizations."],
+      ["Role", "Data science research assistant at UAH, building the extraction pipeline, datasets, and visualizations."],
       ["Constraint", "Thousands of C files with inconsistent naming between production and test code."],
-      ["What I learned", "Custom parsers beat regex for brace-matched languages; chord diagrams surface heavily-reused functions fast."],
-    ],
-    steps: [
-      ["Extraction", "Requirements aligned with source functions from traceability matrices, repo-wide."],
-      ["C parsing", "Brace-depth tracking that ignores comments and strings — full function bodies, not just names."],
-      ["Datasets", "Requirement-function pairs exported ML-ready for similarity and contrastive learning."],
-      ["Visualization", "Chord and Sankey diagrams reveal reuse, multi-module requirements, and coverage gaps."],
     ],
     stack: ["Python", "Pandas", "Holoviews", "Bokeh", "Plotly"],
+  },
+  {
+    id: "mirror",
+    title: "Smart Mirror",
+    sub: "RASPBERRY PI · LOCAL AI ASSISTANT",
+    overview:
+      "A Raspberry Pi smart mirror with custom modules coded in JavaScript. Inspired by Jarvis, it runs local AI models as a voice personal assistant and surfaces information through a two-way mirror, all processed on-device.",
+    grid: [
+      ["Goal", "A Jarvis-style personal assistant built into a mirror, running entirely on local hardware."],
+      ["Role", "Sole developer, from the hardware build to the software modules."],
+      ["Build", "Custom JavaScript modules drive the on-glass display and the assistant interface."],
+    ],
+    steps: [
+      ["Hardware", "A Raspberry Pi mounted behind a two-way mirror with a display panel."],
+      ["Custom modules", "Information panels and controls written as custom JavaScript modules."],
+      ["Local assistant", "Local AI models answer questions and run assistant tasks on-device, no cloud."],
+    ],
+    stack: ["Raspberry Pi", "JavaScript", "Node.js", "Local LLMs"],
   },
 ];
 
@@ -699,17 +677,19 @@ function Projects() {
                               <div key={k}><dt>{k}</dt><dd>{v}</dd></div>
                             ))}
                           </dl>
-                          <div>
-                            <div className="ph">How it works</div>
-                            <ul className="psteps">
-                              {p.steps.map(([t, d], j) => (
-                                <li key={t}>
-                                  <span className="n">{String(j + 1).padStart(2, "0")}</span>
-                                  <span><b>{t}.</b> {d}</span>
-                                </li>
-                              ))}
-                            </ul>
-                          </div>
+                          {p.steps && (
+                            <div>
+                              <div className="ph">How it works</div>
+                              <ul className="psteps">
+                                {p.steps.map(([t, d], j) => (
+                                  <li key={t}>
+                                    <span className="n">{String(j + 1).padStart(2, "0")}</span>
+                                    <span><b>{t}.</b> {d}</span>
+                                  </li>
+                                ))}
+                              </ul>
+                            </div>
+                          )}
                           <div>
                             <div className="ph">Stack</div>
                             <div className="ptags">
@@ -734,21 +714,21 @@ function Projects() {
 function Experience() {
   const items = [
     {
-      when: "2024 — PRESENT",
+      when: "2024 – PRESENT",
       org: "University of Alabama in Huntsville",
       role: "Undergraduate Data Science Research Assistant",
       desc: "Requirement-to-code traceability for NASA Core Flight System, ML-ready datasets, and interactive coverage visualizations.",
       tags: "PYTHON · NASA CFS · ML PIPELINE",
     },
     {
-      when: "MAY — AUG 2024",
+      when: "MAY – AUG 2024",
       org: "Fort Payne City Schools · Fort Payne, AL",
       role: "Information Technology Assistant",
       desc: "Diagnosed and repaired 500+ Chromebooks, managed district-wide device inventory and asset tracking, and resolved support tickets across software, network, and peripheral issues.",
       tags: "HARDWARE REPAIR · ASSET TRACKING · IT SUPPORT",
     },
     {
-      when: "2023 — PRESENT",
+      when: "2023 – PRESENT",
       org: "University of Alabama in Huntsville",
       role: "B.S. Computer Science",
       desc: "Data Science focus, Mathematics minor. Expected 2029.",
@@ -830,7 +810,7 @@ function Contact() {
               target="_blank" rel="noopener noreferrer">GitHub ↗</a>
             <a className="btn btn-line" href="https://linkedin.com/in/caleb-kilgo"
               target="_blank" rel="noopener noreferrer">LinkedIn ↗</a>
-            <a className="btn btn-solid" href="/resume.pdf" download="Caleb_Kilgo_Resume.pdf">
+            <a className="btn btn-solid" href="/resume.pdf" download="Caleb Kilgo Resume.pdf">
               Download Résumé
             </a>
           </div>
@@ -856,7 +836,7 @@ function Footer() {
 export default function App() {
   const scrollTo = useLenis();
   useEffect(() => {
-    document.title = "Caleb Kilgo — AI & Software";
+    document.title = "Caleb Kilgo · AI & Software";
   }, []);
   return (
     <MotionConfig reducedMotion="user">
