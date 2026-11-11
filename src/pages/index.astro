@@ -1,0 +1,240 @@
+---
+import Arrow from '../components/Arrow.astro';
+import FileRow from '../components/FileRow.astro';
+import Scope from '../components/Scope.astro';
+import SectionHead from '../components/SectionHead.astro';
+import { about, contact, fill, hero, orbit, projects, research, site, skills, work } from '../content';
+import Base from '../layouts/Base.astro';
+import { builtAt } from '../lib/build';
+import { stampUtc } from '../lib/orbit/format';
+
+const researchFile = projects.find((project) => project.slug === research.project);
+const cells = Object.entries(orbit.readout);
+const jsonLd = {
+  '@context': 'https://schema.org',
+  '@type': 'Person',
+  name: site.name,
+  url: `${site.url}/`,
+  description: site.description,
+  jobTitle: site.person.jobTitle,
+  affiliation: { '@type': 'CollegeOrUniversity', name: site.person.affiliation },
+  address: {
+    '@type': 'PostalAddress',
+    addressLocality: site.person.locality,
+    addressRegion: site.person.region,
+    addressCountry: site.person.country,
+  },
+  knowsAbout: site.person.knowsAbout,
+  sameAs: contact.links.filter((link) => 'external' in link && link.external).map((link) => link.href),
+};
+---
+
+<Base title={site.title} description={site.description} path="/" jsonLd={jsonLd} home>
+  <section class="hero" aria-labelledby="hero-name">
+    <div class="wrap hero__grid">
+      <div class="hero__text">
+        <p class="label hero__kicker">
+          <span class="muted">{hero.index}</span>
+          {hero.label}
+        </p>
+        <div class="hero__statement">
+          <h1 class="hero__name" id="hero-name">
+            <span>{hero.name[0]}</span>{' '}<span>{hero.name[1]}</span>
+          </h1>
+          <p class="hero__lede">{hero.lede}</p>
+          <dl class="hero__facts">
+            {
+              hero.facts.map((fact) => (
+                <div>
+                  <dt class="label muted">{fact.label}</dt>
+                  <dd class="data">{fact.value}</dd>
+                </div>
+              ))
+            }
+          </dl>
+        </div>
+      </div>
+      <Scope />
+    </div>
+    <div class="wrap">
+      <dl
+        class="readout needs-js"
+        aria-label={orbit.readoutLabel}
+        data-zone={site.base.timeZone}
+        data-zone-offset={site.base.standardOffset}
+        data-zone-standard={site.base.zoneNames.standard}
+        data-zone-daylight={site.base.zoneNames.daylight}
+        data-km={orbit.units.kilometres}
+        data-kms={orbit.units.kilometresPerSecond}
+        data-az={orbit.units.azimuth}
+        data-el={orbit.units.elevation}
+      >
+        {
+          cells.map(([key, label]) => (
+            <div class="readout__cell">
+              <dt class="label muted">{label}</dt>
+              <dd class="data" data-out={key}>
+                {key === 'local' || key === 'utc' ? orbit.units.idle : orbit.units.acquiring}
+              </dd>
+            </div>
+          ))
+        }
+      </dl>
+      <p class="readout readout--static no-js data muted">{fill(orbit.staticNote, { built: stampUtc(builtAt) })}</p>
+    </div>
+  </section>
+
+  <section class="sheet" id="work" aria-labelledby="work-title">
+    <div class="wrap">
+      <SectionHead id="work" index={work.index} title={work.title} meta={fill(work.meta, { count: String(projects.length).padStart(2, '0') })} />
+      <div class="files">
+        {projects.map((project, position) => <FileRow project={project} position={position} />)}
+      </div>
+    </div>
+  </section>
+
+  <section class="sheet sheet--paper" id="research" aria-labelledby="research-title">
+    <div class="wrap">
+      <SectionHead id="research" index={research.index} title={research.title} meta={research.meta} />
+      <div class="research">
+        <h3 class="research__heading">{research.heading}</h3>
+        <div class="research__text">
+          <p>{research.abstract}</p>
+          <p>{research.method}</p>
+        </div>
+        <dl class="spec research__rows">
+          {
+            research.rows.map((row) => (
+              <div class="spec__row">
+                <dt class="label muted">{row.label}</dt>
+                <dd>{row.value}</dd>
+              </div>
+            ))
+          }
+        </dl>
+        {
+          researchFile && (
+            <ul class="figures research__figures">
+              {researchFile.metrics.map((metric) => (
+                <li class="figure">
+                  <span class="figure__value">{metric.value}</span>
+                  <span class="label muted">{metric.label}</span>
+                </li>
+              ))}
+            </ul>
+          )
+        }
+        {
+          researchFile && (
+            <p class="research__links">
+              <a class="label" href={`/work/${researchFile.slug}/`}>
+                {research.more}
+                <Arrow />
+              </a>
+              {researchFile.links.map((link) => (
+                <a class="label" href={link.href} rel="noopener">
+                  {link.label}
+                  <Arrow to="out" />
+                </a>
+              ))}
+            </p>
+          )
+        }
+      </div>
+    </div>
+  </section>
+
+  <section class="sheet" id="skills" aria-labelledby="skills-title">
+    <div class="wrap">
+      <SectionHead id="skills" index={skills.index} title={skills.title} />
+      <div class="skills">
+        {
+          skills.groups.map((group) => (
+            <div class="skills__group">
+              <h3 class="label">{group.label}</h3>
+              <ul>
+                {group.items.map((item) => <li>{item}</li>)}
+              </ul>
+            </div>
+          ))
+        }
+      </div>
+    </div>
+  </section>
+
+  <section class="sheet" id="about" aria-labelledby="about-title">
+    <div class="wrap">
+      <SectionHead id="about" index={about.index} title={about.title} />
+      <div class="about">
+        <div class="about__text">
+          {about.body.map((paragraph) => <p>{paragraph}</p>)}
+        </div>
+        <div class="about__record">
+          <h3 class="label muted">{about.logLabel}</h3>
+          <ol class="log">
+            {
+              about.log.map((entry) => (
+                <li class="log__row">
+                  <span class="data muted">{entry.when}</span>
+                  <div>
+                    <p class="log__what">{entry.what}</p>
+                    <p class="muted">{entry.where}</p>
+                    {entry.note && <p class="log__note muted">{entry.note}</p>}
+                  </div>
+                </li>
+              ))
+            }
+          </ol>
+        </div>
+        <div class="about__memberships">
+          <h3 class="label muted">{about.affiliationsLabel}</h3>
+          <dl class="spec">
+            {
+              about.affiliations.map((row) => (
+                <div class="spec__row spec__row--pair">
+                  <dt>{row.label}</dt>
+                  <dd class="muted">{row.value}</dd>
+                </div>
+              ))
+            }
+          </dl>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="sheet" id="contact" aria-labelledby="contact-title">
+    <div class="wrap">
+      <SectionHead id="contact" index={contact.index} title={contact.title} />
+      <div class="contact">
+        <p class="contact__email">
+          <span class="label muted">{contact.emailLabel}</span>
+          <a href={`mailto:${contact.email}`}>{contact.email}</a>
+        </p>
+        <ul class="contact__links">
+          {
+            contact.links.map((link) => (
+              <li>
+                <a
+                  href={link.href}
+                  rel={'external' in link && link.external ? 'noopener me' : undefined}
+                  download={'download' in link ? link.download : undefined}
+                >
+                  <span class="label">{link.label}</span>
+                  <span class="data muted">{contact.handles[link.label]}</span>
+                  <Arrow to={'external' in link && link.external ? 'out' : 'down'} />
+                </a>
+              </li>
+            ))
+          }
+          <li>
+            <p class="contact__place">
+              <span class="label muted">{contact.locationLabel}</span>
+              <span class="data">{contact.location}</span>
+            </p>
+          </li>
+        </ul>
+      </div>
+    </div>
+  </section>
+</Base>

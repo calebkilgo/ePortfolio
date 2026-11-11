@@ -1,0 +1,19 @@
+---
+import Arrow from '../components/Arrow.astro';
+import { notFound, site } from '../content';
+import Base from '../layouts/Base.astro';
+---
+
+<Base title={notFound.title} description={site.description} path="/404/" noindex>
+  <section class="wrap lost">
+    <p class="data muted">{notFound.code}</p>
+    <h1 class="dossier__title">{notFound.heading}</h1>
+    <p>{notFound.body}</p>
+    <p>
+      <a class="label" href="/">
+        <Arrow to="left" lead />
+        {notFound.action}
+      </a>
+    </p>
+  </section>
+</Base>

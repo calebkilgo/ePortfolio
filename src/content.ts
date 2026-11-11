@@ -310,12 +310,12 @@ export const projects: Project[] = [
     // [repo] docs/ST1.png and docs/ST2.png.
     figures: [
       {
-        file: 'satellite-tracker-01.png',
+        file: 'satellite-tracker-01.jpg',
         alt: 'Satellite Tracker globe view: Earth centred on North America, colour-coded satellite points around it, and a group selector listing Stations, GPS, Starlink, Weather, and Science.',
         caption: 'Globe view with four groups enabled.',
       },
       {
-        file: 'satellite-tracker-02.png',
+        file: 'satellite-tracker-02.jpg',
         alt: 'Satellite Tracker locked on to one satellite above the US east coast: a targeting reticle, its orbital path, and a panel reading latitude, longitude, altitude, and velocity.',
         caption: 'A selected satellite: camera lock-on, orbital path, and the telemetry panel.',
       },

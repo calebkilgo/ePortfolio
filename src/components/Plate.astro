@@ -1,0 +1,31 @@
+---
+// The orbit view as a static drawing: graticule, coastline, limb, ground site,
+// satellites, and the tracked object. Everything is path data computed at
+// build time; styles are in scope.css.
+import type { Plate } from '../lib/orbit/poster';
+
+interface Props {
+  drawing: Plate;
+  label: string;
+}
+const { drawing, label } = Astro.props;
+const half = drawing.size / 2;
+---
+
+<svg class="scope__plate" viewBox={`${-half} ${-half} ${drawing.size} ${drawing.size}`} role="img" aria-label={label}>
+  <path class="scope__grat" d={drawing.graticule}></path>
+  <path class="scope__coast" d={drawing.coast}></path>
+  <circle class="scope__limb" r={drawing.radius}></circle>
+  {
+    drawing.site && (
+      <path class="scope__site" d={`M${drawing.site.x - 16} ${drawing.site.y}h32M${drawing.site.x} ${drawing.site.y - 16}v32`} />
+    )
+  }
+  <path class="scope__dots" d={drawing.dots}></path>
+  <circle
+    class="scope__target"
+    cx={drawing.target?.x ?? 0}
+    cy={drawing.target?.y ?? 0}
+    r="16"
+    visibility={drawing.target ? undefined : 'hidden'}></circle>
+</svg>

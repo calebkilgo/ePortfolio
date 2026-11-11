@@ -1,0 +1,43 @@
+---
+import { fill, orbit, site } from '../content';
+import { builtAt } from '../lib/build';
+import { fetchedAt, rows } from '../lib/orbit/data';
+import { plate } from '../lib/orbit/poster';
+import { shortName } from '../lib/orbit/track';
+import Plate from './Plate.astro';
+
+// The plate is drawn for the moment of the build. With scripting on, the
+// browser redraws it for the present and keeps it there.
+const drawing = plate(builtAt, site.base, orbit.targets[0]);
+const targets = orbit.targets.flatMap((norad) => {
+  const row = rows.find((candidate) => candidate[1] === norad);
+  return row ? [{ norad, name: shortName(row[0]) }] : [];
+});
+const source = fill(orbit.source, { count: drawing.count, epoch: fetchedAt.toISOString().slice(0, 10) });
+---
+
+<figure class="scope">
+  <orbit-scope class="scope__stage" data-src="/orbit/scene.json" data-hint={orbit.keyboardHint}>
+    <Plate drawing={drawing} label={orbit.alt} />
+    <div class="scope__tags needs-js" aria-hidden="true">
+      <span class="scope__tag scope__tag--target data" data-tag="target" hidden></span>
+      <span class="scope__tag data" data-tag="site" hidden>{orbit.site}</span>
+    </div>
+  </orbit-scope>
+  <figcaption class="scope__caption">
+    <p class="scope__line">
+      <span class="label">{orbit.caption}</span>
+      <span class="data muted">{source}</span>
+    </p>
+    <div class="scope__targets needs-js" role="group" aria-label={orbit.targetsLabel}>
+      <span class="label muted" aria-hidden="true">{orbit.targetsLabel}</span>
+      {
+        targets.map((target, position) => (
+          <button class="scope__pick data" type="button" data-norad={target.norad} aria-pressed={position === 0 ? 'true' : 'false'}>
+            {target.name}
+          </button>
+        ))
+      }
+    </div>
+  </figcaption>
+</figure>

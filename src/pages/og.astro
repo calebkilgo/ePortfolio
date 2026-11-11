@@ -1,0 +1,37 @@
+---
+// The social card, as a page. `npm run og` photographs it at 1200 x 630 and
+// saves public/og.png. Not linked, not indexed, not in the sitemap.
+import Plate from '../components/Plate.astro';
+import { hero, orbit, site } from '../content';
+import { builtAt } from '../lib/build';
+import { plate } from '../lib/orbit/poster';
+import '../styles/global.css';
+import '../styles/og.css';
+
+const drawing = plate(builtAt, site.base, orbit.targets[0]);
+const host = new URL(site.url).host.replace(/^www\./, '');
+---
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=1200" />
+    <meta name="robots" content="noindex" />
+    <title>{site.name}</title>
+  </head>
+  <body class="card">
+    <main class="card__frame">
+      <p class="label card__host">{host}</p>
+      <div class="card__text">
+        <h1 class="card__name">
+          <span>{hero.name[0]}</span>{' '}<span>{hero.name[1]}</span>
+        </h1>
+        <p class="card__lede">{hero.lede}</p>
+      </div>
+      <div class="card__plate">
+        <Plate drawing={drawing} label={orbit.alt} />
+      </div>
+    </main>
+  </body>
+</html>

@@ -1,0 +1,67 @@
+---
+import Arrow from './Arrow.astro';
+import { fileNumber, work, type Project } from '../content';
+
+interface Props {
+  project: Project;
+  position: number;
+}
+const { project, position } = Astro.props;
+const href = `/work/${project.slug}/`;
+const candidates: { label: string; value: string | null; style: string }[] = [
+  { label: work.labels.year, value: project.year, style: 'data' },
+  { label: work.labels.status, value: project.status, style: 'data' },
+  { label: work.labels.role, value: project.role, style: 'file__prose' },
+];
+// A field with no confirmed value is left off the page, never guessed.
+const rows = candidates.flatMap((row) => (row.value === null ? [] : [{ ...row, value: row.value }]));
+---
+
+<article class="file">
+  <div class="file__rail">
+    <span class="data muted">{fileNumber(position)}</span>
+    <span class="label muted">{project.kind}</span>
+  </div>
+  <div class="file__main">
+    <h3 class="file__title">
+      <a href={href} data-vt={`file-${project.slug}`}>{project.title}</a>
+    </h3>
+    <p class="file__purpose">{project.purpose}</p>
+    <ul class="file__built">
+      {project.built.map((line) => <li>{line}</li>)}
+    </ul>
+  </div>
+  <dl class="file__meta">
+    {
+      rows.map((row) => (
+        <div class="file__row">
+          <dt class="label muted">{row.label}</dt>
+          <dd class={row.style}>{row.value}</dd>
+        </div>
+      ))
+    }
+    <div class="file__row">
+      <dt class="label muted">{work.labels.stack}</dt>
+      <dd class="data">{project.stack.join(' · ')}</dd>
+    </div>
+    <div class="file__row">
+      <dt class="label muted">{work.labels.links}</dt>
+      <dd class="file__links">
+        <a class="label" href={href}>
+          {work.labels.open}
+          <Arrow />
+          <span class="visually-hidden">{`: ${project.title}`}</span>
+        </a>
+        {
+          project.links.map((link) => (
+            <a class="label" href={link.href} rel="noopener">
+              {link.label}
+              <Arrow to="out" />
+              <span class="visually-hidden">{`: ${project.title}`}</span>
+            </a>
+          ))
+        }
+      </dd>
+    </div>
+  </dl>
+</article>

@@ -1,0 +1,15 @@
+---
+interface Props {
+  id: string;
+  index: string;
+  title: string;
+  meta?: string;
+}
+const { id, index, title, meta } = Astro.props;
+---
+
+<header class="sheet__head">
+  <span class="label sheet__index" aria-hidden="true">{index}</span>
+  <h2 class="label" id={`${id}-title`}>{title}</h2>
+  {meta && <span class="label muted sheet__meta">{meta}</span>}
+</header>

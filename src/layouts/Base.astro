@@ -1,0 +1,104 @@
+---
+import Arrow from '../components/Arrow.astro';
+import dinUrl from '../assets/fonts/ck-din-700.woff2?url';
+import { footer, nav, site } from '../content';
+import { buildCommit, builtAt } from '../lib/build';
+import { stampUtc } from '../lib/orbit/format';
+import '../styles/global.css';
+
+interface Props {
+  title: string;
+  description: string;
+  /** Absolute path of this page, with trailing slash. */
+  path: string;
+  jsonLd?: Record<string, unknown>;
+  noindex?: boolean;
+  /** Section links point at the home page unless we are on it. */
+  home?: boolean;
+}
+
+const { title, description, path, jsonLd, noindex = false, home = false } = Astro.props;
+const canonical = new URL(path, site.url).href;
+const image = new URL('/og.png', site.url).href;
+const prefix = home ? '' : '/';
+---
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{title}</title>
+    <meta name="description" content={description} />
+    <link rel="canonical" href={canonical} />
+    {noindex && <meta name="robots" content="noindex" />}
+    <meta name="theme-color" content="#0b0c0e" />
+    <meta name="color-scheme" content="dark" />
+    <link rel="preload" href={dinUrl} as="font" type="font/woff2" crossorigin />
+    <link rel="icon" href="/favicon.ico" sizes="32x32" />
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content={site.name} />
+    <meta property="og:title" content={title} />
+    <meta property="og:description" content={description} />
+    <meta property="og:url" content={canonical} />
+    <meta property="og:image" content={image} />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:locale" content="en_US" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <script is:inline>
+      document.documentElement.classList.add('js');
+    </script>
+    {jsonLd && <script type="application/ld+json" is:inline set:html={JSON.stringify(jsonLd).replace(/</g, '\u003c')} />}
+  </head>
+  <body>
+    <a class="skip label" href="#main">{nav.skip}</a>
+    <header class="masthead">
+      <div class="wrap masthead__in">
+        <a class="masthead__home label" href="/" aria-current={home ? 'page' : undefined}>{nav.home}</a>
+        <nav class="masthead__nav" aria-label={nav.label}>
+          <ol>
+            {
+              nav.sections.map((section) => (
+                <li>
+                  <a class="label" href={`${prefix}#${section.id}`}>
+                    <span class="masthead__index" aria-hidden="true">{section.index}</span>
+                    {section.label}
+                  </a>
+                </li>
+              ))
+            }
+          </ol>
+        </nav>
+      </div>
+    </header>
+    <main id="main" tabindex="-1">
+      <slot />
+    </main>
+    <footer class="colophon">
+      <div class="wrap colophon__in">
+        <div class="colophon__block">
+          <h2 class="label muted">{footer.colophonLabel}</h2>
+          {footer.colophon.map((line) => <p>{line}</p>)}
+        </div>
+        <div class="colophon__block colophon__build">
+          <h2 class="label muted">{footer.buildLabel}</h2>
+          <p class="data">{stampUtc(builtAt)}</p>
+          <p class="data">{buildCommit}</p>
+        </div>
+        <div class="colophon__base">
+          <p class="label muted">{footer.copyright}</p>
+          <a class="label" href="#main">
+            {footer.top}
+            <Arrow to="up" />
+          </a>
+        </div>
+      </div>
+    </footer>
+    <script>
+      import '../scripts/main.ts';
+    </script>
+  </body>
+</html>
