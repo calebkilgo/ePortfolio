@@ -128,10 +128,7 @@
     padding: 0.3rem 0.7rem;
     border: var(--hairline) solid var(--rule);
     line-height: 1.2;
-    transition:
-      border-color var(--t-state) var(--ease-out),
-      background-color var(--t-state) var(--ease-out),
-      color var(--t-state) var(--ease-out);
+    /* No transition: a selection is a hard state, and one repaint is cheaper than eight. */
   }
   .scope__pick:hover {
     border-color: var(--fg);

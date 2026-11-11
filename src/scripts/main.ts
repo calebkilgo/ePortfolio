@@ -111,5 +111,41 @@ class OrbitScope extends HTMLElement {
   }
 }
 
+/**
+ * The stylesheet keeps sections below the first screen dormant
+ * (content-visibility: auto), so the first render only pays for the hero and
+ * every later frame only for what is on screen. A dormant section has an
+ * estimated height, though, and a link that jumps past one would land in the
+ * wrong place. So once the page has loaded and its fonts are in, each section
+ * is rendered once, in its own short task, for the browser to remember its
+ * true height (contain-intrinsic-size: auto), and then let go dormant again.
+ */
+function settle(): void {
+  const pending = [...document.querySelectorAll<HTMLElement>('.sheet, .colophon, .part')];
+  const next = (): void => {
+    const section = pending.shift();
+    if (!section) {
+      document.documentElement.classList.add('settled');
+      return;
+    }
+    section.style.contentVisibility = 'visible';
+    // Reading a size lays the section out now, inside this task.
+    void section.offsetHeight;
+    // Heights are remembered at the end of a frame: wait for one, then release.
+    requestAnimationFrame(() => {
+      setTimeout(() => {
+        section.style.removeProperty('content-visibility');
+        setTimeout(next, 0);
+      }, 0);
+    });
+  };
+  const begin = (): void => {
+    void document.fonts.ready.then(() => setTimeout(next, 0));
+  };
+  if (document.readyState === 'complete') begin();
+  else window.addEventListener('load', begin, { once: true });
+}
+
 startClocks();
+settle();
 customElements.define('orbit-scope', OrbitScope);

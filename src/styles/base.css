@@ -58,8 +58,11 @@
     -moz-osx-font-smoothing: grayscale;
     text-rendering: optimizeLegibility;
   }
+  /* Smooth scrolling starts once every section has its real height (see
+     main.ts). Before that a jump is instant, so it cannot be thrown off by a
+     section changing size on the way past. */
   @media (prefers-reduced-motion: no-preference) {
-    html {
+    html.settled {
       scroll-behavior: smooth;
     }
   }

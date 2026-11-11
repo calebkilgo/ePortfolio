@@ -154,8 +154,10 @@
     background: var(--bg);
     color: var(--fg);
   }
-  /* Everything below the first screen is laid out and painted when it comes
-     near the viewport, not before. The first render only pays for the hero. */
+  /* Sections away from the viewport stay dormant: not laid out, not painted.
+     The first render pays for the hero alone, and so does every frame after
+     it. main.ts renders each one once after load so that its remembered
+     height (the `auto` below) is the real one, not this estimate. */
   .sheet,
   .colophon {
     content-visibility: auto;

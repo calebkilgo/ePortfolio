@@ -169,8 +169,14 @@ export async function boot(host: HTMLElement): Promise<() => void> {
         if (!chosen) return;
         target = chosen;
         for (const other of picks) other.setAttribute('aria-pressed', other === pick ? 'true' : 'false');
-        readout();
-        onTargetChange();
+        // Let the button show its new state first. The scene and the readout
+        // follow one frame later, so the press itself is answered immediately.
+        requestAnimationFrame(() => {
+          setTimeout(() => {
+            readout();
+            onTargetChange();
+          }, 0);
+        });
       },
       { signal },
     );
