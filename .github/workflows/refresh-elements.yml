@@ -1,0 +1,30 @@
+# Keeps the orbit view honest. Element sets age: a low orbit drifts by
+# kilometres a day from its last published elements. This asks Vercel for a
+# fresh build once a day, and the build fetches current element sets.
+#
+# It does nothing until you opt in:
+#   1. Vercel > Project > Settings > Git > Deploy Hooks: create a hook for the production branch.
+#   2. GitHub > Settings > Secrets and variables > Actions: add it as VERCEL_DEPLOY_HOOK.
+
+name: Refresh orbital elements
+
+on:
+  schedule:
+    - cron: '17 9 * * *' # daily at 09:17 UTC
+  workflow_dispatch:
+
+permissions: {}
+
+jobs:
+  redeploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Ask Vercel for a new build
+        env:
+          HOOK: ${{ secrets.VERCEL_DEPLOY_HOOK }}
+        run: |
+          if [ -z "$HOOK" ]; then
+            echo "VERCEL_DEPLOY_HOOK is not set. Nothing to do."
+            exit 0
+          fi
+          curl --fail --silent --show-error --request POST "$HOOK"
