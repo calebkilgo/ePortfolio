@@ -1,0 +1,53 @@
+/* Layer order is the whole specificity strategy: later layers win. */
+@layer reset, tokens, base, layout, components, utilities;
+
+@import './fonts.css';
+@import './tokens.css';
+@import './base.css';
+@import './layout.css';
+@import './components.css';
+@import './scope.css';
+@import './dossier.css';
+
+/* One cross-document transition: a file's title travels from the index to its page. */
+@view-transition {
+  navigation: auto;
+}
+
+@layer utilities {
+  [data-vt] {
+    view-transition-name: attr(data-vt type(<custom-ident>), none);
+  }
+}
+
+::view-transition-group(*) {
+  animation-duration: 320ms;
+  animation-timing-function: cubic-bezier(0.2, 0, 0, 1);
+}
+
+::view-transition-old(root),
+::view-transition-new(root) {
+  animation-duration: 160ms;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  @view-transition {
+    navigation: none;
+  }
+}
+
+@media print {
+  .masthead,
+  .scope,
+  .readout,
+  .skip {
+    display: none !important;
+  }
+  html {
+    --bg: white;
+    --fg: black;
+    --muted: #444;
+    --rule: #bbb;
+    --rule-strong: black;
+  }
+}

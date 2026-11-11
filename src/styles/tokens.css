@@ -1,0 +1,80 @@
+/* Design tokens. Colour in OKLCH, sizes in rem, fluid values in clamp(). */
+@layer tokens {
+  :root {
+    color-scheme: dark;
+
+    /* Ink. Neutral with a trace of blue, so the orange reads warmer. */
+    --black: oklch(0.145 0.004 265);
+    --black-raised: oklch(0.2 0.004 265);
+    --grey-rule: oklch(0.33 0.004 265);
+    --grey-mid: oklch(0.52 0.004 265);
+    --grey-text: oklch(0.7 0.004 265);
+    --white: oklch(0.955 0.003 95);
+    /* International Orange (aerospace). Used for one thing: live state. */
+    --orange: oklch(0.68 0.222 38.8);
+
+    /* Roles. A sheet can swap these to print black on paper. */
+    --bg: var(--black);
+    --bg-raised: var(--black-raised);
+    --fg: var(--white);
+    --muted: var(--grey-text);
+    --rule: var(--grey-rule);
+    --rule-strong: var(--white);
+    --signal: var(--orange);
+
+    /* Type families. Fallback faces are metric-matched in fonts.css. */
+    --font-display: 'CK DIN', 'CK DIN Fallback', 'CK DIN Fallback Android', 'Arial Narrow', sans-serif;
+    --font-text: 'Overpass', 'Overpass Fallback', 'Overpass Fallback Android', sans-serif;
+    --font-mono: 'Overpass Mono', 'Overpass Mono Fallback', monospace;
+
+    /* Type scale. Nothing on the site is set below 12px. */
+    --size-label: 0.75rem;
+    --size-data: 0.8125rem;
+    --size-small: 0.875rem;
+    --size-body: clamp(1rem, 0.955rem + 0.23vw, 1.125rem);
+    --size-lede: clamp(1.1875rem, 1.06rem + 0.55vw, 1.5rem);
+    --size-title: clamp(1.75rem, 1.2rem + 2.75vw, 3.5rem);
+    --size-statement: clamp(2rem, 1.25rem + 3.75vw, 4.75rem);
+    --size-figure: clamp(2.5rem, 1.6rem + 4.5vw, 5.5rem);
+
+    --track-label: 0.14em;
+    --track-display: -0.012em;
+
+    /* Space. A 4px base; sections breathe on a fluid step. */
+    --s-1: 0.25rem;
+    --s-2: 0.5rem;
+    --s-3: 0.75rem;
+    --s-4: 1rem;
+    --s-5: 1.5rem;
+    --s-6: 2rem;
+    --s-7: 3rem;
+    --s-8: 4rem;
+    --s-section: clamp(4rem, 2.5rem + 7.5vw, 10rem);
+
+    /* Grid: twelve columns, fixed gutters, capped measure. */
+    --page-max: 110rem;
+    --margin: clamp(1rem, 0.43rem + 2.86vw, 3rem);
+    --gap: clamp(0.75rem, 0.39rem + 1.79vw, 2rem);
+    --rail: 3;
+
+    /* Motion. Short, decelerating, rarely used. */
+    --ease-out: cubic-bezier(0.2, 0, 0, 1);
+    --t-state: 120ms;
+    --t-move: 320ms;
+
+    --hairline: 1px;
+    --masthead: 3.5rem;
+  }
+
+  /* A sheet printed black on paper. */
+  .sheet--paper {
+    --bg: var(--white);
+    --bg-raised: oklch(0.915 0.003 95);
+    --fg: var(--black);
+    --muted: oklch(0.42 0.004 265);
+    --rule: oklch(0.78 0.003 95);
+    --rule-strong: var(--black);
+    --signal: oklch(0.56 0.2 38.8);
+    color-scheme: light;
+  }
+}

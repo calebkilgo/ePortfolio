@@ -1,0 +1,223 @@
+@layer layout {
+  /* The measure: fluid margins, capped width. Every sheet hangs from it. */
+  .wrap {
+    inline-size: min(100% - 2 * var(--margin), var(--page-max));
+    margin-inline: auto;
+  }
+
+  .skip {
+    position: absolute;
+    inset-block-start: 0;
+    inset-inline-start: var(--margin);
+    z-index: 20;
+    padding: var(--s-3) var(--s-4);
+    background: var(--fg);
+    color: var(--bg);
+    transform: translateY(-120%);
+  }
+  .skip:focus {
+    transform: none;
+  }
+
+  /* ── Masthead ─────────────────────────────────────────────────────────── */
+  .masthead {
+    z-index: 10;
+    background: var(--bg);
+    border-block-end: var(--hairline) solid var(--rule);
+  }
+  .masthead__in {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    column-gap: var(--s-6);
+    min-block-size: var(--masthead);
+  }
+  .masthead__home {
+    padding-block: var(--s-4);
+  }
+  .masthead__nav ol {
+    display: flex;
+    column-gap: clamp(0.5rem, 2.2vw, 2.25rem);
+  }
+  .masthead__nav a {
+    display: inline-flex;
+    gap: 0.6em;
+    padding-block: var(--s-4);
+    color: var(--muted);
+    transition: color var(--t-state) var(--ease-out);
+  }
+  .masthead__nav a:hover,
+  .masthead__nav a:focus-visible {
+    color: var(--fg);
+  }
+  .masthead__index {
+    font-family: var(--font-mono);
+    font-weight: 400;
+    letter-spacing: 0.02em;
+  }
+  @media (width < 48rem) {
+    .masthead__nav {
+      inline-size: 100%;
+      border-block-start: var(--hairline) solid var(--rule);
+    }
+    .masthead__nav ol {
+      justify-content: space-between;
+    }
+    .masthead__nav a {
+      padding-block: var(--s-3);
+      letter-spacing: 0.08em;
+    }
+    .masthead__index {
+      display: none;
+    }
+  }
+  @media (width >= 48rem) {
+    .masthead {
+      position: sticky;
+      inset-block-start: 0;
+    }
+  }
+
+  /* ── Hero ─────────────────────────────────────────────────────────────── */
+  .hero {
+    display: grid;
+    grid-template-rows: 1fr auto;
+    min-block-size: calc(100svh - var(--masthead));
+    padding-block-start: var(--s-6);
+  }
+  .hero__grid {
+    display: grid;
+    grid-template-columns: repeat(12, minmax(0, 1fr));
+    column-gap: var(--gap);
+    row-gap: var(--s-7);
+    padding-block-end: var(--s-6);
+  }
+  .hero__text {
+    grid-column: 1 / -1;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    gap: var(--s-6);
+    container-type: inline-size;
+  }
+  .hero__kicker {
+    display: flex;
+    gap: var(--s-4);
+  }
+  .hero__name {
+    /* Sized to its column, so the two words always fill the measure. */
+    font-family: var(--font-display);
+    font-weight: 700;
+    font-size: clamp(4.25rem, min(35cqi, 24svh), 17rem);
+    line-height: 0.86;
+    letter-spacing: var(--track-display);
+    text-transform: uppercase;
+    /* Pull the C's curve out to the margin so the stem of the K aligns below it. */
+    margin-inline-start: -0.04em;
+  }
+  .hero__name span {
+    display: block;
+  }
+  .hero__lede {
+    max-inline-size: 26em;
+    margin-block-start: var(--s-6);
+    font-size: var(--size-lede);
+    line-height: 1.3;
+    text-wrap: balance;
+  }
+  /* Set as data, in the monospace: its fallback face has exactly the same
+     advance, so these lines break identically before and after the web font
+     arrives and nothing beneath them moves. */
+  .hero__facts {
+    display: grid;
+    margin-block-start: var(--s-6);
+    border-block-start: var(--hairline) solid var(--rule);
+  }
+  .hero__facts div {
+    display: grid;
+    grid-template-columns: 4.25rem minmax(0, 1fr);
+    column-gap: var(--s-4);
+    align-items: baseline;
+    padding-block: 0.6rem;
+    border-block-end: var(--hairline) solid var(--rule);
+  }
+  @media (width >= 64rem) {
+    .hero__text {
+      grid-column: 1 / span 6;
+    }
+  }
+
+  /* ── Sheets ───────────────────────────────────────────────────────────── */
+  .sheet {
+    padding-block: var(--s-section);
+    background: var(--bg);
+    color: var(--fg);
+  }
+  /* Everything below the first screen is laid out and painted when it comes
+     near the viewport, not before. The first render only pays for the hero. */
+  .sheet,
+  .colophon {
+    content-visibility: auto;
+    contain-intrinsic-size: auto 56rem;
+  }
+  .sheet__head {
+    display: flex;
+    align-items: baseline;
+    gap: var(--s-5);
+    padding-block-end: var(--s-3);
+    margin-block-end: var(--s-7);
+    border-block-end: var(--hairline) solid var(--rule-strong);
+  }
+  .sheet__index {
+    font-family: var(--font-mono);
+    font-weight: 400;
+    letter-spacing: 0.02em;
+  }
+  .sheet__meta {
+    margin-inline-start: auto;
+  }
+
+  /* ── Colophon ─────────────────────────────────────────────────────────── */
+  .colophon {
+    padding-block: var(--s-7) var(--s-5);
+    border-block-start: var(--hairline) solid var(--rule);
+    font-size: var(--size-small);
+    color: var(--muted);
+  }
+  .colophon__in {
+    display: grid;
+    grid-template-columns: repeat(12, minmax(0, 1fr));
+    gap: var(--s-6) var(--gap);
+  }
+  .colophon__block {
+    grid-column: 1 / -1;
+    display: grid;
+    gap: var(--s-2);
+    align-content: start;
+  }
+  .colophon__block h2 {
+    margin-block-end: var(--s-2);
+  }
+  .colophon__base {
+    grid-column: 1 / -1;
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    gap: var(--s-4);
+    padding-block-start: var(--s-4);
+    border-block-start: var(--hairline) solid var(--rule);
+  }
+  .colophon__base a {
+    color: var(--fg);
+    padding-block: var(--s-2);
+  }
+  @media (width >= 64rem) {
+    .colophon__block {
+      grid-column: 1 / span 6;
+    }
+    .colophon__build {
+      grid-column: 9 / -1;
+    }
+  }
+}

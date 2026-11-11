@@ -1,0 +1,215 @@
+@layer components {
+  /* ── Orbit view ───────────────────────────────────────────────────────── */
+  .scope {
+    grid-column: 1 / -1;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+    gap: var(--s-4);
+    min-inline-size: 0;
+  }
+  .scope__stage {
+    position: relative;
+    display: block;
+    aspect-ratio: 1;
+    /* Never taller than the first screen leaves room for. */
+    inline-size: min(100%, max(17rem, 100svh - var(--masthead) - 15rem));
+    /* Vertical swipes scroll the page; horizontal drags turn the globe. */
+    touch-action: pan-y;
+    user-select: none;
+    -webkit-user-select: none;
+  }
+  .scope__stage[data-live] {
+    cursor: grab;
+  }
+  .scope__stage[data-live]:active {
+    cursor: grabbing;
+  }
+  .scope__plate,
+  .scope__canvas {
+    position: absolute;
+    inset: 0;
+    inline-size: 100%;
+    block-size: 100%;
+  }
+  .scope__canvas {
+    opacity: 0;
+    transition: opacity 400ms var(--ease-out);
+  }
+  .scope__stage[data-live] .scope__canvas {
+    opacity: 1;
+  }
+  /* Canvas and plate show the same drawing, so the hand-over is a plain cross-fade. */
+  .scope__stage[data-live] .scope__plate {
+    visibility: hidden;
+    transition: visibility 0s linear 400ms;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .scope__canvas,
+    .scope__stage[data-live] .scope__plate {
+      transition: none;
+    }
+  }
+
+  /* The plate: hairlines that keep their weight at any size. */
+  .scope__plate * {
+    fill: none;
+    stroke: var(--fg);
+    stroke-width: 1px;
+    vector-effect: non-scaling-stroke;
+  }
+  .scope__grat {
+    stroke-opacity: 0.17;
+  }
+  .scope__coast {
+    stroke-opacity: 0.8;
+  }
+  .scope__limb {
+    stroke-width: 1.25px;
+  }
+  .scope__site {
+    stroke-width: 1.25px;
+  }
+  .scope__dots {
+    stroke-width: 2.5px;
+    stroke-linecap: square;
+  }
+  @media (width >= 48rem) {
+    .scope__dots {
+      stroke-width: 3.5px;
+    }
+  }
+  .scope__target {
+    stroke: var(--signal);
+    stroke-width: 1.5px;
+  }
+
+  .scope__tags {
+    position: absolute;
+    inset: 0;
+    overflow: hidden;
+    pointer-events: none;
+  }
+  .scope__tag {
+    position: absolute;
+    inset-block-start: 0;
+    inset-inline-start: 0;
+    padding: 0.1rem 0.35rem;
+    background: var(--bg);
+    white-space: nowrap;
+    will-change: transform;
+  }
+  .scope__tag--target {
+    color: var(--signal);
+  }
+
+  .scope__caption {
+    display: grid;
+    gap: var(--s-3);
+  }
+  .scope__line {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: var(--s-1) var(--s-4);
+    max-inline-size: none;
+  }
+  .scope__targets {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--s-2);
+  }
+  .scope__targets > .label {
+    margin-inline-end: var(--s-2);
+  }
+  .scope__pick {
+    min-block-size: 2rem;
+    padding: 0.3rem 0.7rem;
+    border: var(--hairline) solid var(--rule);
+    line-height: 1.2;
+    transition:
+      border-color var(--t-state) var(--ease-out),
+      background-color var(--t-state) var(--ease-out),
+      color var(--t-state) var(--ease-out);
+  }
+  .scope__pick:hover {
+    border-color: var(--fg);
+  }
+  .scope__pick[aria-pressed='true'] {
+    background: var(--fg);
+    border-color: var(--fg);
+    color: var(--bg);
+  }
+
+  @media (width >= 64rem) {
+    .scope {
+      grid-column: 7 / -1;
+      align-items: flex-end;
+    }
+    .scope__caption {
+      inline-size: min(100%, max(17rem, 100svh - var(--masthead) - 15rem));
+    }
+  }
+
+  /* ── Telemetry strip ──────────────────────────────────────────────────── */
+  .readout {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    border-block-start: var(--hairline) solid var(--rule-strong);
+  }
+  .readout__cell {
+    display: grid;
+    gap: var(--s-1);
+    min-inline-size: 0;
+    padding: var(--s-3) 0 var(--s-3) var(--s-2);
+    border-block-end: var(--hairline) solid var(--rule);
+    border-inline-start: var(--hairline) solid var(--rule);
+  }
+  .readout__cell dd {
+    overflow: hidden;
+    white-space: pre;
+    /* Fifteen characters have to fit half of a 320px screen. */
+    letter-spacing: 0;
+  }
+  .readout__cell:nth-child(2n + 1) {
+    padding-inline-start: 0;
+    border-inline-start: 0;
+  }
+  .readout--static {
+    display: block;
+    max-inline-size: none;
+    padding-block: var(--s-4);
+    border-block-end: var(--hairline) solid var(--rule);
+  }
+  @media (width >= 40rem) and (width < 72rem) {
+    .readout {
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+    }
+    .readout__cell:nth-child(2n + 1) {
+      padding-inline-start: var(--s-3);
+      border-inline-start: var(--hairline) solid var(--rule);
+    }
+    .readout__cell:nth-child(4n + 1) {
+      padding-inline-start: 0;
+      border-inline-start: 0;
+    }
+  }
+  @media (width >= 72rem) {
+    .readout {
+      grid-template-columns: repeat(8, minmax(0, 1fr));
+    }
+    .readout__cell {
+      padding-block: var(--s-4);
+      border-block-end: 0;
+    }
+    .readout__cell:nth-child(2n + 1) {
+      padding-inline-start: var(--s-3);
+      border-inline-start: var(--hairline) solid var(--rule);
+    }
+    .readout__cell:first-child {
+      padding-inline-start: 0;
+      border-inline-start: 0;
+    }
+  }
+}

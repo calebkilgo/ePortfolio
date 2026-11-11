@@ -1,0 +1,168 @@
+@layer reset {
+  *,
+  *::before,
+  *::after {
+    box-sizing: border-box;
+  }
+  * {
+    margin: 0;
+    padding: 0;
+  }
+  html {
+    -webkit-text-size-adjust: 100%;
+    text-size-adjust: 100%;
+  }
+  ol,
+  ul {
+    list-style: none;
+  }
+  img,
+  svg,
+  canvas,
+  picture {
+    display: block;
+    max-inline-size: 100%;
+  }
+  button {
+    font: inherit;
+    color: inherit;
+    background: none;
+    border: 0;
+    border-radius: 0;
+    cursor: pointer;
+  }
+  a {
+    color: inherit;
+    text-decoration: none;
+  }
+  h1,
+  h2,
+  h3,
+  h4,
+  dt,
+  dd {
+    font: inherit;
+  }
+}
+
+@layer base {
+  html {
+    background: var(--bg);
+    color: var(--fg);
+    font-family: var(--font-text);
+    font-size: 100%;
+    font-synthesis: none;
+    line-height: 1.5;
+    scroll-padding-block-start: calc(var(--masthead) + var(--s-5));
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
+  }
+  @media (prefers-reduced-motion: no-preference) {
+    html {
+      scroll-behavior: smooth;
+    }
+  }
+  body {
+    min-block-size: 100svh;
+    font-size: var(--size-body);
+    overflow-wrap: break-word;
+  }
+  ::selection {
+    background: var(--fg);
+    color: var(--bg);
+  }
+  :focus-visible {
+    outline: 2px solid var(--signal);
+    outline-offset: 3px;
+  }
+  /* The measure is set in em, never ch: ch is the width of the zero in the
+     current font, so a column sized in ch changes width when the web font
+     replaces its fallback and every line in it breaks again. 32 em of this
+     face is about 72 characters. */
+  p {
+    text-wrap: pretty;
+    max-inline-size: 32em;
+  }
+  /* Links inside running text carry a rule; navigational links state themselves. */
+  p a,
+  .link {
+    text-decoration: underline;
+    text-decoration-thickness: 1px;
+    text-underline-offset: 0.22em;
+    text-decoration-color: var(--muted);
+    transition: text-decoration-color var(--t-state) var(--ease-out);
+  }
+  p a:hover,
+  .link:hover {
+    text-decoration-color: currentColor;
+  }
+  [hidden] {
+    display: none !important;
+  }
+  /* Parts that only make sense with or without scripting. */
+  html:not(.js) .needs-js,
+  html.js .no-js {
+    display: none !important;
+  }
+  .visually-hidden {
+    position: absolute;
+    inline-size: 1px;
+    block-size: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
+}
+
+@layer utilities {
+  /* Small capitals in D-DIN: the voice of every label on the site. */
+  .label {
+    font-family: var(--font-display);
+    font-weight: 700;
+    font-size: var(--size-label);
+    line-height: 1.25;
+    letter-spacing: var(--track-label);
+    text-transform: uppercase;
+  }
+  /* Monospaced data: tabular by construction, zero slashed. */
+  .data {
+    font-family: var(--font-mono);
+    font-weight: 400;
+    font-size: var(--size-data);
+    line-height: 1.45;
+    letter-spacing: 0.02em;
+    font-variant-numeric: slashed-zero;
+    text-transform: uppercase;
+  }
+  .muted {
+    color: var(--muted);
+  }
+  /* A drawn arrow (components/Arrow.astro). Sized to the text it sits in. */
+  .arrow {
+    display: inline-block;
+    inline-size: 0.78em;
+    block-size: 0.78em;
+    margin-inline-start: 0.55em;
+    overflow: visible;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 1.5;
+    vector-effect: non-scaling-stroke;
+  }
+  .arrow--lead {
+    margin-inline: 0 0.55em;
+  }
+  .arrow--out {
+    rotate: -45deg;
+  }
+  .arrow--up {
+    rotate: -90deg;
+  }
+  .arrow--down {
+    rotate: 90deg;
+  }
+  .arrow--left {
+    rotate: 180deg;
+  }
+}

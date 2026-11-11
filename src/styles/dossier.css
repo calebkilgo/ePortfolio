@@ -1,0 +1,209 @@
+@layer components {
+  /* ── A project file ───────────────────────────────────────────────────── */
+  .dossier {
+    padding-block: var(--s-6) var(--s-section);
+  }
+  .dossier__head {
+    container-type: inline-size;
+    padding-block-end: var(--s-8);
+  }
+  .dossier__crumb {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    gap: var(--s-4);
+    max-inline-size: none;
+    padding-block-end: var(--s-3);
+    margin-block-end: var(--s-7);
+    border-block-end: var(--hairline) solid var(--rule-strong);
+  }
+  .dossier__crumb a {
+    border-block-end-color: transparent;
+  }
+  /* Titles are sized to the measure, so that where their lines break never
+     depends on which font is showing. On a phone each word takes a line and
+     the longest word (5.9 em) fills 92% of the width. From tablet up the
+     whole title sits on one line: the longest (8.5 em) fills 96%. */
+  .dossier__title {
+    font-family: var(--font-display);
+    font-weight: 700;
+    font-size: clamp(2.5rem, 15.5cqi, 6.5rem);
+    line-height: 0.88;
+    letter-spacing: var(--track-display);
+    text-transform: uppercase;
+    margin-inline-start: -0.04em;
+    /* A word space wider than the page puts every word on its own line,
+       with the title still one run of text. */
+    word-spacing: 100vw;
+  }
+  @media (width >= 48rem) {
+    .dossier__title {
+      font-size: clamp(2.75rem, 11.3cqi, 12rem);
+      word-spacing: normal;
+    }
+  }
+  .dossier__descriptor {
+    margin-block-start: var(--s-4);
+    max-inline-size: none;
+  }
+  .dossier__intro {
+    display: grid;
+    grid-template-columns: repeat(12, minmax(0, 1fr));
+    column-gap: var(--gap);
+    row-gap: var(--s-6);
+    margin-block-start: var(--s-7);
+  }
+  .dossier__intro > * {
+    grid-column: 1 / -1;
+  }
+  .dossier__purpose {
+    max-inline-size: 27em;
+    font-size: var(--size-lede);
+    line-height: 1.3;
+  }
+  /* Prose cannot be made immune to a font swap the way data can, so it is
+     placed where a change in its line count moves nothing a visitor can see.
+     On a phone it comes last on a cover that fills the first screen. From
+     tablet up it sits beside the taller table, which sets the row height. */
+  @media (width < 48rem) {
+    .dossier__head {
+      min-block-size: calc(100svh - 5.5rem);
+    }
+    .dossier__purpose {
+      order: 2;
+    }
+  }
+  @media (width >= 48rem) {
+    .dossier__purpose {
+      grid-column: 1 / span 6;
+    }
+    .dossier__intro .spec {
+      grid-column: 7 / -1;
+    }
+  }
+  @media (width >= 64rem) {
+    .dossier__intro .spec {
+      grid-column: 8 / -1;
+    }
+  }
+
+  /* A part of the file: label in the rail, body on the measure. */
+  .part {
+    display: grid;
+    grid-template-columns: repeat(12, minmax(0, 1fr));
+    column-gap: var(--gap);
+    row-gap: var(--s-5);
+    padding-block: var(--s-7);
+    border-block-start: var(--hairline) solid var(--rule);
+    content-visibility: auto;
+    contain-intrinsic-size: auto 28rem;
+  }
+  .part > * {
+    grid-column: 1 / -1;
+  }
+  @media (width >= 64rem) {
+    .part__label {
+      grid-column: 1 / span 3;
+      align-self: start;
+      position: sticky;
+      inset-block-start: calc(var(--masthead) + var(--s-5));
+    }
+    .part__body {
+      grid-column: 4 / -1;
+    }
+  }
+
+  .prose {
+    display: grid;
+    gap: var(--s-4);
+  }
+  .prose__lead {
+    max-inline-size: 30em;
+    margin-block-end: var(--s-4);
+    font-size: var(--size-lede);
+    line-height: 1.32;
+  }
+  .ruled li {
+    max-inline-size: 36em;
+    padding-block: var(--s-3);
+    border-block-start: var(--hairline) solid var(--rule);
+  }
+  .ruled li:last-child {
+    border-block-end: var(--hairline) solid var(--rule);
+  }
+
+  .step {
+    display: grid;
+    grid-template-columns: 3rem minmax(0, 1fr);
+    column-gap: var(--s-4);
+    align-items: baseline;
+    padding-block: var(--s-4);
+    border-block-start: var(--hairline) solid var(--rule);
+  }
+  .step:last-child {
+    border-block-end: var(--hairline) solid var(--rule);
+  }
+  .step__title {
+    margin-block-end: var(--s-2);
+    font-family: var(--font-display);
+    font-weight: 700;
+    font-size: 1.25rem;
+    line-height: 1.1;
+    letter-spacing: 0.02em;
+    text-transform: uppercase;
+  }
+
+  .plates {
+    display: grid;
+    gap: var(--s-7);
+  }
+  .plate img {
+    inline-size: 100%;
+    block-size: auto;
+    border: var(--hairline) solid var(--rule);
+  }
+  .plate figcaption {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: var(--s-1) var(--s-4);
+    padding-block-start: var(--s-3);
+    font-size: var(--size-small);
+    color: var(--muted);
+  }
+
+  .dossier__nav {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    column-gap: var(--gap);
+    padding-block-start: var(--s-5);
+    border-block-start: var(--hairline) solid var(--rule-strong);
+  }
+  .dossier__nav a {
+    display: grid;
+    gap: var(--s-3);
+    justify-items: start;
+    align-content: start;
+  }
+  .dossier__nav a[rel='next'] {
+    justify-items: end;
+    text-align: end;
+  }
+  .dossier__navtitle {
+    font-family: var(--font-display);
+    font-weight: 700;
+    font-size: clamp(1.25rem, 0.9rem + 1.8vw, 2.5rem);
+    line-height: 1;
+    text-transform: uppercase;
+  }
+
+  .lost {
+    display: grid;
+    gap: var(--s-5);
+    align-content: center;
+    justify-items: start;
+    min-block-size: 62svh;
+    padding-block: var(--s-section);
+    container-type: inline-size;
+  }
+}

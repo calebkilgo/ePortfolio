@@ -1,0 +1,365 @@
+@layer components {
+  /* A link that states itself: small capitals over a rule. */
+  .file__links a,
+  .research__links a,
+  .dossier__crumb a,
+  .lost a {
+    display: inline-block;
+    padding-block: 0.3rem;
+    border-block-end: var(--hairline) solid var(--muted);
+    transition: border-color var(--t-state) var(--ease-out);
+  }
+  .file__links a:hover,
+  .research__links a:hover,
+  .dossier__crumb a:hover,
+  .lost a:hover {
+    border-block-end-color: currentColor;
+  }
+
+  /* A title that inverts under the pointer, like a selected line on a console. */
+  .file__title a,
+  .contact__email a,
+  .dossier__navtitle {
+    box-decoration-break: clone;
+    -webkit-box-decoration-break: clone;
+    transition:
+      background-color var(--t-state) var(--ease-out),
+      color var(--t-state) var(--ease-out);
+  }
+  .file__title a:hover,
+  .file__title a:focus-visible,
+  .contact__email a:hover,
+  .contact__email a:focus-visible,
+  .dossier__nav a:hover .dossier__navtitle,
+  .dossier__nav a:focus-visible .dossier__navtitle {
+    background: var(--fg);
+    color: var(--bg);
+    transition-duration: 0ms;
+  }
+
+  /* ── Label / value table ──────────────────────────────────────────────── */
+  .spec {
+    display: grid;
+    align-content: start;
+  }
+  .spec__row {
+    display: grid;
+    grid-template-columns: 6.5rem minmax(0, 1fr);
+    column-gap: var(--s-4);
+    align-items: baseline;
+    padding-block: 0.65rem;
+    border-block-start: var(--hairline) solid var(--rule);
+  }
+  .spec__row:last-child {
+    border-block-end: var(--hairline) solid var(--rule);
+  }
+  .spec__row--pair {
+    grid-template-columns: minmax(0, 1fr) auto;
+  }
+  @media (width < 40rem) {
+    .spec__row--pair {
+      grid-template-columns: minmax(0, 1fr);
+      row-gap: var(--s-1);
+    }
+  }
+  .spec dd {
+    min-inline-size: 0;
+  }
+
+  /* ── Large numerals ───────────────────────────────────────────────────── */
+  .figures {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    column-gap: var(--gap);
+    border-block-start: var(--hairline) solid var(--rule-strong);
+  }
+  .figure {
+    display: grid;
+    align-content: start;
+    gap: var(--s-2);
+    padding-block: var(--s-4) var(--s-5);
+    border-block-end: var(--hairline) solid var(--rule);
+  }
+  .figure__value {
+    font-family: var(--font-display);
+    font-weight: 700;
+    font-size: var(--size-figure);
+    line-height: 0.9;
+    letter-spacing: -0.01em;
+  }
+  @media (width >= 40rem) {
+    .figures {
+      grid-template-columns: repeat(auto-fit, minmax(8.5rem, 1fr));
+    }
+  }
+
+  /* ── Work: one file per project ───────────────────────────────────────── */
+  .file {
+    display: grid;
+    grid-template-columns: repeat(12, minmax(0, 1fr));
+    column-gap: var(--gap);
+    row-gap: var(--s-5);
+    padding-block: var(--s-7);
+    border-block-end: var(--hairline) solid var(--rule);
+  }
+  .file:first-child {
+    padding-block-start: 0;
+  }
+  .file:last-child {
+    padding-block-end: 0;
+    border-block-end: 0;
+  }
+  .file__rail {
+    grid-column: 1 / -1;
+    display: flex;
+    align-items: baseline;
+    gap: var(--s-4);
+  }
+  .file__main,
+  .file__meta {
+    grid-column: 1 / -1;
+  }
+  .file__title {
+    font-family: var(--font-display);
+    font-weight: 700;
+    font-size: var(--size-title);
+    line-height: 0.96;
+    letter-spacing: -0.005em;
+    text-transform: uppercase;
+  }
+  .file__purpose {
+    max-inline-size: 34em;
+    margin-block-start: var(--s-4);
+    font-size: clamp(1.0625rem, 1rem + 0.35vw, 1.3125rem);
+    line-height: 1.38;
+  }
+  .file__built {
+    max-inline-size: 38em;
+    margin-block-start: var(--s-5);
+    font-size: var(--size-small);
+    line-height: 1.45;
+    color: var(--muted);
+  }
+  .file__built li {
+    padding-block: var(--s-2);
+    border-block-start: var(--hairline) solid var(--rule);
+  }
+  .file__meta {
+    align-self: start;
+  }
+  .file__row {
+    display: grid;
+    grid-template-columns: 4.5rem minmax(0, 1fr);
+    column-gap: var(--s-4);
+    align-items: baseline;
+    padding-block: 0.6rem;
+    border-block-start: var(--hairline) solid var(--rule);
+  }
+  .file__row:last-child {
+    border-block-end: var(--hairline) solid var(--rule);
+  }
+  .file__prose {
+    font-size: var(--size-small);
+    line-height: 1.4;
+  }
+  /* Fixed columns: where a link starts must not depend on how wide the one
+     before it happens to be in the font that is showing. */
+  .file__links {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, 8.5rem);
+    justify-items: start;
+    gap: var(--s-1) var(--s-3);
+  }
+  @media (width >= 64rem) {
+    .file__rail {
+      grid-column: 1 / span 2;
+      flex-direction: column;
+      gap: var(--s-2);
+      padding-block-start: 0.55rem;
+    }
+    .file__main {
+      grid-column: 3 / span 6;
+    }
+    .file__meta {
+      grid-column: 9 / -1;
+      padding-block-start: 0.55rem;
+    }
+  }
+
+  /* ── Research: printed black on paper ─────────────────────────────────── */
+  .research {
+    display: grid;
+    grid-template-columns: repeat(12, minmax(0, 1fr));
+    column-gap: var(--gap);
+    row-gap: var(--s-7);
+  }
+  .research > * {
+    grid-column: 1 / -1;
+  }
+  .research__heading {
+    max-inline-size: 17em;
+    font-family: var(--font-display);
+    font-weight: 700;
+    font-size: var(--size-statement);
+    line-height: 0.98;
+    letter-spacing: -0.008em;
+    text-transform: uppercase;
+    text-wrap: balance;
+  }
+  .research__text {
+    display: grid;
+    gap: var(--s-4);
+    align-content: start;
+  }
+  .research__links {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--s-2) var(--s-6);
+    max-inline-size: none;
+  }
+  @media (width >= 64rem) {
+    .research__text {
+      grid-column: 3 / span 6;
+    }
+    .research__rows {
+      grid-column: 9 / -1;
+    }
+    .research__figures,
+    .research__links {
+      grid-column: 3 / -1;
+    }
+  }
+
+  /* ── Skills ───────────────────────────────────────────────────────────── */
+  .skills {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: var(--s-7) var(--gap);
+  }
+  .skills__group h3 {
+    padding-block-end: var(--s-3);
+    margin-block-end: var(--s-3);
+    border-block-end: var(--hairline) solid var(--rule);
+  }
+  .skills__group li {
+    padding-block: 0.28rem;
+    line-height: 1.3;
+  }
+  @media (width >= 64rem) {
+    .skills {
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+    }
+  }
+
+  /* ── About ────────────────────────────────────────────────────────────── */
+  .about {
+    display: grid;
+    grid-template-columns: repeat(12, minmax(0, 1fr));
+    column-gap: var(--gap);
+    row-gap: var(--s-7);
+  }
+  .about__text,
+  .about__record,
+  .about__memberships {
+    grid-column: 1 / -1;
+    display: grid;
+    align-content: start;
+  }
+  .about__memberships {
+    gap: var(--s-3);
+  }
+  .about__text {
+    gap: var(--s-4);
+    font-size: var(--size-lede);
+    line-height: 1.32;
+  }
+  .about__text p {
+    max-inline-size: 25em;
+  }
+  .about__record {
+    gap: var(--s-3);
+  }
+  .about__record h3:not(:first-child) {
+    margin-block-start: var(--s-6);
+  }
+  .log__row {
+    display: grid;
+    grid-template-columns: 7.75rem minmax(0, 1fr);
+    column-gap: var(--s-4);
+    align-items: baseline;
+    padding-block: var(--s-3);
+    border-block-start: var(--hairline) solid var(--rule);
+  }
+  .log__row:last-child {
+    border-block-end: var(--hairline) solid var(--rule);
+  }
+  .log__note {
+    margin-block-start: var(--s-1);
+    font-size: var(--size-small);
+    line-height: 1.4;
+  }
+  @media (width >= 64rem) {
+    .about__text,
+    .about__memberships {
+      grid-column: 1 / span 6;
+    }
+    .about__record {
+      grid-column: 8 / -1;
+      grid-row: 1 / span 2;
+    }
+  }
+
+  /* ── Contact ──────────────────────────────────────────────────────────── */
+  .contact {
+    display: grid;
+    gap: var(--s-7);
+    container-type: inline-size;
+  }
+  .contact__email {
+    display: grid;
+    gap: var(--s-3);
+    justify-items: start;
+    max-inline-size: none;
+  }
+  .contact__email a {
+    font-family: var(--font-display);
+    font-weight: 700;
+    /* 22 characters at roughly half an em each: this fills the measure on one line. */
+    font-size: clamp(1.375rem, 8.3cqi, 7rem);
+    line-height: 1;
+    letter-spacing: -0.012em;
+    text-decoration: none;
+  }
+  .contact__links li {
+    border-block-start: var(--hairline) solid var(--rule);
+  }
+  .contact__links li:last-child {
+    border-block-end: var(--hairline) solid var(--rule);
+  }
+  .contact__links a,
+  .contact__place {
+    display: grid;
+    grid-template-columns: 7.5rem minmax(0, 1fr) auto;
+    column-gap: var(--s-4);
+    align-items: baseline;
+    /* The field of the hover state reaches past the text, which stays on the grid. */
+    padding: var(--s-4) var(--s-3);
+    margin-inline: calc(-1 * var(--s-3));
+    max-inline-size: none;
+  }
+  .contact__links a {
+    transition:
+      background-color var(--t-state) var(--ease-out),
+      color var(--t-state) var(--ease-out);
+  }
+  .contact__links a:hover,
+  .contact__links a:focus-visible {
+    background: var(--fg);
+    color: var(--bg);
+    transition-duration: 0ms;
+  }
+  .contact__links a:hover .muted,
+  .contact__links a:focus-visible .muted {
+    color: inherit;
+  }
+}
