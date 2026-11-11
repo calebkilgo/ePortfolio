@@ -1,2 +1,9 @@
 node_modules/
-build/
+dist/
+.astro/
+.vercel/
+.verify/
+.venv-fonts/
+src/data/elements.live.json
+*.log
+.DS_Store
